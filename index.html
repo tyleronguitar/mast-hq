@@ -5,12 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Mast HQ</title>
 <meta name="theme-color" content="#FFF6EA">
+<meta name="color-scheme" content="light only">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Mast HQ">
 <style>
 :root{
+  color-scheme: light only;
   --bg:#FFF6EA; --ink:#33222A; --card:#FFFFFF;
   --pink:#FF5D8F; --pink-d:#E23B70; --teal:#1FA893; --gold:#FFB43A;
   --lav:#7C6CE0; --spot:#2B2026; --line:#F0DFCB;
@@ -91,7 +93,8 @@ input[type=text]{
 }
 .gcard .ico{font-size:30px;}
 .gcard .sub{font-size:11px; font-weight:700; opacity:.75; margin-top:2px;}
-.gcard.wide{grid-column:1/-1; flex-direction:row; align-items:center; gap:12px; min-height:0;}
+.gcard.wide{grid-column:1/-1; flex-direction:row; align-items:center; gap:12px; min-height:0; justify-content:flex-start;}
+.gcard.wide > span:last-child{flex:1; text-align:left;}
 .sect{font-size:13px; font-weight:900; letter-spacing:1.5px; text-transform:uppercase; margin:20px 2px 2px; opacity:.6;}
 .navrow{display:flex; gap:10px; margin-top:14px;}
 .navrow .btn{flex:1;}
@@ -451,15 +454,13 @@ input[type=range]{accent-color:var(--pink); height:30px;}
     <button class="btn gold" onclick="nav('board')">🏆 Scores</button>
   </div>
 
-  <div class="sect">Fun Wing</div>
-  <div class="grid">
+  <div class="grid" style="margin-top:16px;">
     <button class="gcard wide spots" onclick="nav('home')" style="background-color:#fff;">
       <span class="ico" style="font-size:38px;">🕹️</span>
       <span style="background:var(--bg);border:2.5px solid var(--ink);border-radius:12px;padding:6px 10px;">Mast Arcade<div class="sub">Chess · mini games · earn ⭐ and 🙂</div></span>
     </button>
   </div>
 
-  <div class="sect">The Wings</div>
   <div class="grid">
     <button class="gcard wide" style="background:#E0F5F1;" onclick="nav('wing-house')">
       <span class="ico" style="font-size:34px;">🏡</span>
