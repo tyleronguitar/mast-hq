@@ -61,7 +61,7 @@ button:active{transform:translate(2px,2px); box-shadow:0 0 0 var(--ink) !importa
 .btn.block{display:block; width:100%; margin:10px 0;}
 .card{
   background:var(--card); border:3px solid var(--ink); border-radius:20px;
-  box-shadow:5px 5px 0 var(--ink); padding:16px; margin:12px 0;
+  box-shadow:5px 5px 0 var(--ink); padding:14px; margin:10px 0;
 }
 /* ===== identity ===== */
 #scr-setup{padding-top:40px; text-align:center;}
@@ -342,6 +342,13 @@ input[type=range]{accent-color:var(--pink); height:30px;}
   <div class="center" id="lbCrown" style="font-weight:900; font-size:16px; margin-bottom:6px;"></div>
   <div class="lb" id="lbCards"></div>
   <div class="card">
+    <b>🔌 Connection</b>
+    <div class="statline"><span>Database</span><b id="connUrl" style="max-width:60%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></b></div>
+    <div class="statline"><span>House key</span><b id="connKey" onclick="this.textContent=HOUSE" style="cursor:pointer;">tap to reveal</b></div>
+    <button class="btn small gold block" onclick="connReset()">Change connection (this phone only)</button>
+    <div style="font-size:11px; opacity:.6; font-weight:700;">Both phones must show the exact same database and key to sync. Changing it here never deletes data — reconnect with the same key and everything returns.</div>
+  </div>
+  <div class="card">
     <b>Rename yourself</b>
     <div class="sendrow"><input type="text" id="renameInput" maxlength="14"><button class="btn small teal" onclick="renameMe()">Save</button></div>
   </div>
@@ -452,46 +459,27 @@ input[type=range]{accent-color:var(--pink); height:30px;}
     </button>
   </div>
 
-  <div class="sect">Run the House</div>
+  <div class="sect">The Wings</div>
   <div class="grid">
-    <button class="gcard" style="background:#E0F5F1;" onclick="nav('cal')"><span class="ico">📅</span>Calendar<span class="sub" id="subCal">events &amp; pickups</span></button>
-    <button class="gcard" style="background:#FFF0D4;" onclick="nav('groc')"><span class="ico">🛒</span>Groceries<span class="sub" id="subGroc">shared list</span></button>
-    <button class="gcard" style="background:#FFE3EC;" onclick="nav('gifts')"><span class="ico">🎁</span>Gifts &amp; Birthdays<span class="sub" id="subGift">idea vault</span></button>
-    <button class="gcard" style="background:#EAE6FB;" onclick="nav('meds')"><span class="ico">💊</span>Meds &amp; Rx<span class="sub" id="subMeds">refills &amp; nudges</span></button>
-    <button class="gcard" style="background:#E0F5F1;" onclick="nav('chores')"><span class="ico">🧹</span>Trading Floor<span class="sub">chores → 🙂 coins</span></button>
-    <button class="gcard" style="background:#FFE9D6;" onclick="nav('xmas')"><span class="ico">🎄</span>Xmas HQ<span class="sub" id="subXmas">budget &amp; wrapping</span></button>
-    <button class="gcard" style="background:#FFF0D4;" onclick="nav('lib-homecare')"><span class="ico">🏠</span>Home Care<span class="sub">schedule · how-tos · DIY</span></button>
-    <button class="gcard" style="background:#FFE3EC;" onclick="nav('lib-food')"><span class="ico">🍳</span>Food &amp; Fuel<span class="sub">nutrition · recipes</span></button>
-    <button class="gcard" style="background:#E0F5F1;" onclick="nav('lib-garage')"><span class="ico">🚗</span>The Garage<span class="sub">service log · repairs</span></button>
-    <button class="gcard" style="background:#EAE6FB;" onclick="nav('money')"><span class="ico">💵</span>Money<span class="sub">bills · spending</span></button>
-    <button class="gcard" style="background:#FFE3EC;" onclick="nav('lib-med')"><span class="ico">🚑</span>Medical &amp; Safety<span class="sub">first aid · ICE contacts</span></button>
-    <button class="gcard" style="background:#FFF0D4;" onclick="nav('remind')"><span class="ico">🔔</span>Reminders<span class="sub">nudge each other</span></button>
+    <button class="gcard wide" style="background:#E0F5F1;" onclick="nav('wing-house')">
+      <span class="ico" style="font-size:34px;">🏡</span>
+      <span>Run the House<div class="sub">calendar · groceries · money · garage · home care +7 more</div></span>
+    </button>
+    <button class="gcard wide" style="background:#FFF0D4;" onclick="nav('wing-learn')">
+      <span class="ico" style="font-size:34px;">🌱</span>
+      <span>Learn &amp; Grow<div class="sub">travel · fitness · words · communication · life skills</div></span>
+    </button>
+    <button class="gcard wide" style="background:#EAE6FB;" onclick="nav('wing-future')">
+      <span class="ico" style="font-size:34px;">🔮</span>
+      <span>Build the Future<div class="sub">10-year map · decision log</div></span>
+    </button>
+    <button class="gcard wide" style="background:#FFD9E5;" onclick="nav('wing-us')">
+      <span class="ico" style="font-size:34px;">💞</span>
+      <span>Us<div class="sub">check-ins · memory jar · fair fight · love den</div></span>
+    </button>
   </div>
 
-  <div class="sect">Learn &amp; Grow</div>
-  <div class="grid">
-    <button class="gcard" style="background:#E0F5F1;" onclick="nav('lib-travel')"><span class="ico">✈️</span>Travel HQ<span class="sub">bucket list · deals</span></button>
-    <button class="gcard" style="background:#EAE6FB;" onclick="nav('lib-fit')"><span class="ico">💪</span>Fitness<span class="sub">routines · muscle map</span></button>
-    <button class="gcard" style="background:#FFF0D4;" onclick="nav('words')"><span class="ico">📖</span>Word Lab<span class="sub">dictionary · thesaurus · quiz</span></button>
-    <button class="gcard" style="background:#FFE3EC;" onclick="nav('lib-grow')"><span class="ico">🌱</span>Grow Together<span class="sub">communication · love languages</span></button>
-    <button class="gcard" style="background:#E0F5F1;" onclick="nav('lib-soul')"><span class="ico">🧘</span>Soul &amp; Mind<span class="sub">big questions · coping</span></button>
-    <button class="gcard wide" style="background:#FFF3D6;" onclick="nav('lib-life')"><span class="ico" style="font-size:32px;">🧭</span><span>Life Skills<div class="sub">investing · habits · parenting</div></span></button>
-  </div>
-
-  <div class="sect">Build the Future</div>
-  <div class="grid">
-    <button class="gcard" style="background:#FFF0D4;" onclick="nav('map10')"><span class="ico">🗺️</span>10-Year Map<span class="sub">dreams on a timeline</span></button>
-    <button class="gcard" style="background:#EAE6FB;" onclick="nav('decide')"><span class="ico">🗳️</span>Decision Log<span class="sub">"we agreed to that"</span></button>
-  </div>
-
-  <div class="sect">Us</div>
-  <div class="grid">
-    <button class="gcard" style="background:#FFD9E5;" onclick="nav('sotu')"><span class="ico">📝</span>State of the Union<span class="sub">monthly check-in</span></button>
-    <button class="gcard" style="background:#FFF3D6;" onclick="nav('jar')"><span class="ico">🫙</span>Memory Jar<span class="sub" id="subJar">log the good stuff</span></button>
-    <button class="gcard" style="background:#E0F5F1;" onclick="nav('fight')"><span class="ico">🧯</span>Fair Fight<span class="sub">cool-off toolkit</span></button>
-    <button class="gcard" style="background:#FFD9E5;" onclick="nav('love')"><span class="ico">💞</span>Love Den<span class="sub">the classics</span></button>
-  </div>
-  <div class="center" style="margin-top:18px; font-weight:700; font-size:12px; opacity:.55;">Mast HQ v2 · still just for us two 🐾</div>
+  <div class="center" style="margin-top:18px; font-weight:700; font-size:12px; opacity:.55;">Mast HQ · built for two 🐾</div>
 </div>
 
 <!-- ============ CALENDAR ============ -->
@@ -667,6 +655,12 @@ input[type=range]{accent-color:var(--pink); height:30px;}
   </div>
 </div>
 
+<!-- ============ WING HUB ============ -->
+<div class="screen" id="scr-wing">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2 id="wingTitle">Wing</h2></div>
+  <div class="grid" style="margin-top:4px;" id="wingGrid"></div>
+</div>
+
 <!-- ============ WORD LAB ============ -->
 <div class="screen" id="scr-words">
   <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>📖 Word Lab</h2></div>
@@ -793,6 +787,7 @@ function show(id){
 async function nav(id){
   clearInterval(feedTimer); feedTimer = null;
   if(id !== 'chess'){ clearInterval(chessTimer); chessTimer = null; }
+  if(id.indexOf('wing-')===0){ openWing(id.slice(5)); return; }
   if(id.indexOf('lib-')===0){ await loadStats(); openLib(id.slice(4)); return; }
   if(id === 'money'){ moneyLoad(); }
   if(id === 'words'){ wordsOpen(); }
@@ -843,6 +838,15 @@ async function connectSave(){
     btn.textContent = 'Connect';
     toast('Could not reach that database — check the URL and your Firebase rules');
   }
+}
+
+function connReset(){
+  if(!armDel('connreset')) return;
+  localStorage.removeItem('fb:url');
+  localStorage.removeItem('fb:house');
+  FB = ''; HOUSE = '';
+  toast('Disconnected — enter a URL and key to reconnect');
+  show('connect');
 }
 
 /* ================= IDENTITY ================= */
@@ -983,6 +987,8 @@ async function openBoard(){
     </div>`;
   }).join('');
   document.getElementById('renameInput').value = STATS[ME].name;
+  document.getElementById('connUrl').textContent = FB.replace('https://','');
+  document.getElementById('connKey').textContent = 'tap to reveal';
 }
 
 /* ================= LOVE DEN ================= */
@@ -1925,10 +1931,10 @@ function grocDraw(){
     ? top.map(([k])=>`<button style="font-size:14px; font-weight:800;" onclick="grocAdd('${esc(k).replace(/'/g,"\\'")}')">＋ ${esc(k)}</button>`).join('')
     : '<span style="opacity:.5; font-weight:700; font-size:13px;">Add items a few times and your regulars appear here.</span>';
   const open = GR.items.filter(i=>!i.done), done = GR.items.filter(i=>i.done);
-  const row = i => `<div class="card" style="padding:10px 14px; margin:8px 0; display:flex; align-items:center; gap:10px; ${i.done?'opacity:.5;':''}">
-    <button class="btn small ${i.done?'teal':''}" onclick="grocToggle('${i.id}')">${i.done?'✓':'○'}</button>
-    <span style="flex:1; font-weight:800; ${i.done?'text-decoration:line-through;':''}">${esc(i.n)}</span>
-    <span style="font-size:13px; opacity:.6;">${AV[i.by]}</span></div>`;
+  const row = i => `<div class="card" style="padding:5px 10px; margin:5px 0; display:flex; align-items:center; gap:8px; border-radius:14px; box-shadow:3px 3px 0 var(--ink); ${i.done?'opacity:.5;':''}">
+    <button class="btn small ${i.done?'teal':''}" style="padding:4px 10px; box-shadow:2px 2px 0 var(--ink);" onclick="grocToggle('${i.id}')">${i.done?'✓':'○'}</button>
+    <span style="flex:1; font-weight:800; font-size:15px; ${i.done?'text-decoration:line-through;':''}">${esc(i.n)}</span>
+    <span style="font-size:12px; opacity:.55;">${AV[i.by]}</span></div>`;
   document.getElementById('grocList').innerHTML =
     (open.length ? open.map(row).join('') : '<div class="center" style="opacity:.5; font-weight:700; padding:20px 0;">List is empty — fridge must be thriving.</div>')
     + (done.length ? `<div class="sect">In the basket</div>` + done.map(row).join('') : '');
@@ -3429,6 +3435,236 @@ function calExportAll(){
   const up = CAL.filter(e=>e.date>=t);
   if(!up.length){ toast('Nothing upcoming to export'); return; }
   icsDownload(up, 'mast-calendar.ics');
+}
+
+/* ================= V6: MORE OF EVERYTHING ================= */
+
+/* ---- doubled compliments ---- */
+LOVE.compliments.push(
+ "Watching you be good at what you do is my favorite show.",
+ "Ten out of ten. Would marry again. Would marry twice.",
+ "You're the calm in every one of my storms.",
+ "Somehow you make even errand day feel like a date.",
+ "My favorite place in the entire world is right next to you.",
+ "You believed in me before I did. You still do.",
+ "Every good thing in my life has your fingerprints on it.",
+ "If loving you were a sport, I'd finally be an athlete.",
+ "You're the best decision I get to keep making every morning.",
+ "I don't need luck — I married mine."
+);
+
+/* ---- doubled quotes ---- */
+LOVE.quotes.push(
+ ["Being deeply loved by someone gives you strength, while loving someone deeply gives you courage.","Lao Tzu"],
+ ["To love and be loved is to feel the sun from both sides.","David Viscott"],
+ ["We loved with a love that was more than love.","Edgar Allan Poe"],
+ ["The greatest happiness of life is the conviction that we are loved.","Victor Hugo"],
+ ["Love does not consist of gazing at each other, but in looking outward together in the same direction.","Antoine de Saint-Exupéry"],
+ ["Where there is love there is life.","Mahatma Gandhi"],
+ ["It is not a lack of love, but a lack of friendship that makes unhappy marriages.","Friedrich Nietzsche"],
+ ["I love her and that's the beginning and end of everything.","F. Scott Fitzgerald"]
+);
+
+/* ---- doubled tips ---- */
+LOVE.tips.push(
+ ["The 10-minute reunion","The first ten minutes after you're both home are logistics-free: no bills, no schedules, no complaints. Greet each other like you missed each other — because you did."],
+ ["Assume goodwill","When a text or comment could be read two ways, deliberately pick the kind reading. You're married to someone who loves you, not someone plotting against you."],
+ ["Two-minute favors","If something would help your spouse and takes under two minutes — their water bottle, their phone charger, moving their car — just do it, right then, without scorekeeping."],
+ ["Protect the inside jokes","Private nicknames, running bits, your own vocabulary — that secret language is relationship glue. Feed it. (This entire app counts.)"],
+ ["Go to bed together","Synced bedtimes are secretly one of the strongest habits in happy marriages: it's built-in talk time, touch time, and the day's soft landing."],
+ ["Public team, private feedback","Never correct or contradict each other in front of others — kids included. Take the note to a private moment. In public, you're one unit."],
+ ["The gratitude ping","One midday text naming something specific: 'thank you for handling the dishwasher guy.' Specific beats generic — it proves you actually noticed."],
+ ["Learn their stress signature","Know what your spouse's overwhelm looks like (quiet? snappy? cleaning frenzy?) and the one move that actually helps. Deploy without being asked."]
+);
+
+/* ---- expanded after dark ---- */
+LOVE.spice.push(
+ ["The yes / no / maybe list","Separately write down things you'd love, things you're done with, and things you're curious about. Trade lists over wine. The 'maybe' column is where marriages get interesting."],
+ ["Massage trade night","Fifteen minutes each, real oil, phone timers so it's fair. Rule: the receiver says nothing except direction. Half the time it ends as a massage. Half the time it doesn't."],
+ ["Shower together","Practical, steamy, and weirdly good for conversation. Bonus points for washing each other's hair — an underrated intimacy that has nothing to prove."],
+ ["The hotel effect at home","One night: phones in a drawer, good sheets, candles, get ready like it's a date with a stranger. Familiarity is lovely, but a little novelty is rocket fuel."],
+ ["Senses night","One of you closes their eyes (or uses a soft blindfold) and just receives — touch, temperature, anticipation. Trust plus mystery is a powerful combination."],
+ ["The slow build week","A whole week of escalating affection with a no-finish rule until the weekend. Anticipation is the most underrated ingredient there is."]
+);
+
+/* ---- more trash talk & sweet talk ---- */
+NICE.push(
+ "Your brain is my favorite. Your face is tied for first. 😍",
+ "That was such a smart move I'm a little scared of you.",
+ "Win or lose, you're the total package, babe.",
+ "I'd lose a hundred games just to watch you smile like that.",
+ "Certified genius move. I really married UP.",
+ "You make competitive look adorable.",
+ "Honestly? Deserved. You earned that one, hot stuff. 🔥"
+);
+TRASH.push(
+ "I've seen the memory game. Your memory IS a game. 🧠",
+ "Somewhere a participation trophy has your name on it 🏅",
+ "Bold of you to call that a strategy.",
+ "The Pug-Bot sends its condolences. 🤖",
+ "I'd explain my strategy, but you seem busy losing.",
+ "Blink twice if you need a tutorial, sweetheart 😘",
+ "Breaking news: the leaderboard just updated. Look who's on top. (Me.)"
+);
+
+/* ---- more daily tidbits ---- */
+FACTS.push(
+ "Male penguins propose with a pebble — they search the beach for the smoothest one and present it to their chosen mate.",
+ "Seahorse couples greet each other every morning with a dance, tails entwined.",
+ "The University of Oxford is older than the Aztec Empire.",
+ "An average cumulus cloud weighs about a million pounds. It floats anyway.",
+ "Bees give each other directions by dancing — the waggle dance encodes distance and heading to the flowers.",
+ "A bolt of lightning is about five times hotter than the surface of the sun.",
+ "Humans are faintly bioluminescent — we literally glow, just 1,000× too dim to see.",
+ "Sloths can hold their breath longer than dolphins — up to 40 minutes.",
+ "Tigers have striped skin, not just striped fur.",
+ "Venus flytraps can count: they wait for a second touch before snapping shut, so they don't waste energy on raindrops.",
+ "Crows recognize human faces and hold grudges for years — they also tell their crow friends about you.",
+ "Your brain runs on about 20 watts — roughly one dim lightbulb powering everything you've ever thought."
+);
+
+/* ---- custom destinations ---- */
+let DESTS = [];
+async function destsLoad(){ DESTS = (await sget('mast:dests')) || []; }
+async function destAdd(){
+  const n = document.getElementById('destName').value.trim(); if(!n) return;
+  DESTS.push({id:uid(), n, note:document.getElementById('destNote').value.trim(), by:ME});
+  await sset('mast:dests', DESTS);
+  document.getElementById('destName').value=''; document.getElementById('destNote').value='';
+  toast('Destination pinned 🌍'); destDraw();
+}
+async function destDel(id){
+  if(!armDel('ds'+id)){ destDraw(); return; }
+  DESTS = DESTS.filter(d=>d.id!==id); await sset('mast:dests', DESTS); destDraw();
+}
+async function destDraw(){
+  await destsLoad();
+  document.getElementById('libBody').innerHTML =
+    `<div class="card"><b>➕ Add your own destination</b>
+      <div style="display:grid; gap:8px; margin-top:8px;">
+        <input type="text" id="destName" placeholder="Place (e.g. Nashville 🎸)" maxlength="40">
+        <input type="text" id="destNote" placeholder="Why / when / notes" maxlength="90">
+        <button class="btn teal" onclick="destAdd()">Pin it</button>
+      </div></div>` +
+    DESTS.map(d=>`<div class="lovecard"><h4>📍 ${esc(d.n)} <span style="font-size:11px; opacity:.5;">${AV[d.by]}</span></h4>${esc(d.note||'')}
+      <div style="display:flex; gap:8px; margin-top:8px;">
+        <button class="btn small gold" onclick="bucketAdd('${esc(d.n).replace(/'/g,"\\'")}')">🪣 Bucket it</button>
+        <button class="btn small" onclick="destDel('${d.id}')">✕</button>
+      </div></div>`).join('') +
+    `<div class="sect">Our curated shortlist</div>` +
+    LOVE.trips.map(([t,dsc],i)=>`<div class="lovecard"><h4>${t}</h4>${dsc}
+      <div style="margin-top:8px; font-size:13px; background:#FFF0D4; border:2px dashed var(--ink); border-radius:12px; padding:8px 10px;">💸 ${TRIP_DEALS[i]||''}</div>
+      <button class="btn small gold" style="margin-top:8px;" onclick="bucketAdd('${t.replace(/'/g,"\\'").replace(/ [^ ]*$/,'')}')">🪣 Bucket it</button>
+    </div>`).join('');
+}
+
+/* ---- home care: quick log + history ---- */
+let HCLOG = [];
+async function hclogLoad(){ HCLOG = (await sget('mast:hclog')) || []; }
+async function hcQuickLog(){
+  const t = document.getElementById('hcQuick').value.trim(); if(!t) return;
+  HCLOG.unshift({id:uid(), t, date:todayStr(), by:ME});
+  HCLOG = HCLOG.slice(0,40);
+  await sset('mast:hclog', HCLOG);
+  document.getElementById('hcQuick').value='';
+  const eff = parseInt(document.getElementById('hcEffort').value) || 2;
+  await addCoins(eff, eff>=25 ? 'back-breaker — hero status' : 'home hero');
+  sendText(`🏠 Handled: ${t} ✅ (+${eff} 🙂${eff>=25 ? ' — someone owes someone a back rub' : ''})`);
+  hcDraw();
+}
+async function hclogDel(id){
+  if(!armDel('hl'+id)){ hcDraw(); return; }
+  HCLOG = HCLOG.filter(h=>h.id!==id); await sset('mast:hclog', HCLOG); hcDraw();
+}
+async function hcDone(id){
+  const h = HC.find(h=>h.id===id); if(!h) return;
+  h.last = todayStr(); await hcSave();
+  HCLOG.unshift({id:uid(), t:h.name, date:todayStr(), by:ME});
+  HCLOG = HCLOG.slice(0,40);
+  await sset('mast:hclog', HCLOG);
+  await addCoins(2, 'home hero');
+  sendText(`🏠 Handled: ${h.name} ✅ (+2 🙂)`);
+  hcDraw();
+}
+async function hcDraw(){
+  await hcLoad(); await hclogLoad();
+  const scheduled = new Set(HC.map(h=>h.name));
+  const chips = HC_PRESETS.filter(([n])=>!scheduled.has(n));
+  document.getElementById('libBody').innerHTML = `
+    <div class="card" style="background:#E0F5F1;"><b>✅ I just did something — log it</b>
+      <div class="sendrow"><input type="text" id="hcQuick" placeholder="e.g. Winterized the hot tub" maxlength="50"><button class="btn small pink" onclick="hcQuickLog()">Log</button></div>
+      <select id="hcEffort" class="dtin" style="width:100%; margin-top:8px;">
+        <option value="2">⚡ Quick fix · +2 🙂</option>
+        <option value="5">💪 Solid effort · +5 🙂</option>
+        <option value="10">🔨 Big job · +10 🙂</option>
+        <option value="25">🥵 Back-breaker · +25 🙂</option>
+      </select>
+    </div>
+    <div class="card"><b>Add a recurring task</b>
+      <div class="sendrow"><input type="text" id="hcName" placeholder="Task" maxlength="40"><input type="text" id="hcMonths" inputmode="numeric" placeholder="Every ? mo" style="max-width:90px;"><button class="btn small teal" onclick="hcAdd()">＋</button></div>
+      ${chips.length? `<div class="emojirow" style="margin-top:8px;">${chips.map(([n,m])=>`<button style="font-size:12px; font-weight:800;" onclick="hcAdd('${n}',${m})">＋ ${n}</button>`).join('')}</div>`:''}
+    </div>
+    ${HC.map(h=>{
+      const nx = hcNext(h);
+      const dleft = nx ? daysUntil(nx) : null;
+      const due = dleft===null || dleft<=0;
+      return `<div class="card" style="padding:12px; ${due?'background:#FFE3EC;':''}">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <b style="flex:1;">${esc(h.name)}</b>
+          <span style="font-size:12px; font-weight:800; opacity:.7;">every ${h.months}mo</span>
+          <button class="btn small" onclick="hcDel('${h.id}')">✕</button>
+        </div>
+        <div class="statline"><span>${due ? '❗ Due now' : '✅ Next due'}</span><b>${nx? fmtD(nx)+(due?'':' ('+dleft+'d)') : 'never done'}</b></div>
+        <button class="btn small teal block" style="margin-bottom:0;" onclick="hcDone('${h.id}')">Mark done today · +2 🙂</button>
+      </div>`;
+    }).join('') || '<div class="center" style="opacity:.5; font-weight:700; padding:10px 0;">No recurring tasks yet — tap the presets above.</div>'}
+    ${HCLOG.length? `<div class="sect">🧾 Recently handled</div>` + HCLOG.slice(0,12).map(l=>`
+      <div class="statline" style="background:#fff; border:2.5px solid var(--ink); border-radius:12px; padding:7px 12px; margin:5px 0;">
+        <span>${AV[l.by]} ${esc(l.t)}</span><span style="white-space:nowrap;"><b style="font-size:12px; opacity:.6;">${fmtD(l.date)}</b> <button class="btn small" style="box-shadow:2px 2px 0 var(--ink); padding:2px 8px;" onclick="hclogDel('${l.id}')">✕</button></span>
+      </div>`).join('') : ''}`;
+}
+
+/* ---- WING HUBS ---- */
+const WINGS = {
+ house:{title:'🏡 Run the House', tiles:[
+  ['cal','#E0F5F1','📅','Calendar','events & pickups'],
+  ['groc','#FFF0D4','🛒','Groceries','shared list'],
+  ['gifts','#FFE3EC','🎁','Gifts & Birthdays','idea vault'],
+  ['meds','#EAE6FB','💊','Meds & Rx','refills & nudges'],
+  ['chores','#E0F5F1','🧹','Trading Floor','chores → 🙂'],
+  ['xmas','#FFE9D6','🎄','Xmas HQ','budget & wrapping'],
+  ['lib-homecare','#FFF0D4','🏠','Home Care','schedule · how-tos'],
+  ['lib-food','#FFE3EC','🍳','Food & Fuel','recipes · kitchen calc'],
+  ['lib-garage','#E0F5F1','🚗','The Garage','service log · repairs'],
+  ['money','#EAE6FB','💵','Money','bills · spending'],
+  ['lib-med','#FFE3EC','🚑','Medical & Safety','first aid · ICE'],
+  ['remind','#FFF0D4','🔔','Reminders','nudge each other']
+ ]},
+ learn:{title:'🌱 Learn & Grow', tiles:[
+  ['lib-travel','#E0F5F1','✈️','Travel HQ','bucket list · deals'],
+  ['lib-fit','#EAE6FB','💪','Fitness','routines · muscle map'],
+  ['words','#FFF0D4','📖','Word Lab','dictionary · quiz'],
+  ['lib-grow','#FFE3EC','🌱','Grow Together','communication · love'],
+  ['lib-soul','#E0F5F1','🧘','Soul & Mind','big questions · coping'],
+  ['lib-life','#FFF3D6','🧭','Life Skills','investing · parenting']
+ ]},
+ future:{title:'🔮 Build the Future', tiles:[
+  ['map10','#FFF0D4','🗺️','10-Year Map','dreams on a timeline'],
+  ['decide','#EAE6FB','🗳️','Decision Log','"we agreed to that"']
+ ]},
+ us:{title:'💞 Us', tiles:[
+  ['sotu','#FFD9E5','📝','State of the Union','monthly check-in'],
+  ['jar','#FFF3D6','🫙','Memory Jar','log the good stuff'],
+  ['fight','#E0F5F1','🧯','Fair Fight','cool-off toolkit'],
+  ['love','#FFD9E5','💞','Love Den','the classics']
+ ]}
+};
+function openWing(w){
+  const wing = WINGS[w];
+  document.getElementById('wingTitle').textContent = wing.title;
+  document.getElementById('wingGrid').innerHTML = wing.tiles.map(([tgt,bg,ico,label,sub])=>
+    `<button class="gcard" style="background:${bg};" onclick="nav('${tgt}')"><span class="ico">${ico}</span>${label}<span class="sub">${sub}</span></button>`).join('');
+  show('wing');
 }
 
 </script>
