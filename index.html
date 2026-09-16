@@ -492,12 +492,15 @@ input[type=range]{accent-color:var(--pink); height:30px;}
     </button>
   </div>
 
-  <div class="center" style="margin-top:18px; font-weight:700; font-size:12px; opacity:.55;">Mast HQ · built for two 🐾</div>
+  <button class="btn block" style="margin-top:16px;" onclick="nav('howto')">❓ How Mast HQ works</button>
+  <div class="center" style="margin-top:10px; font-weight:700; font-size:12px; opacity:.55;">Mast HQ · built for two 🐾</div>
 </div>
 
 <!-- ============ CALENDAR ============ -->
 <div class="screen" id="scr-cal">
   <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>📅 Shared Calendar</h2></div>
+  <div class="card" style="padding:10px;" id="calMonth"></div>
+  <div id="calDayEvents"></div>
   <div class="card">
     <b>Add something</b>
     <div style="display:grid; gap:8px; margin-top:8px;">
@@ -758,6 +761,26 @@ input[type=range]{accent-color:var(--pink); height:30px;}
   <div id="actBody"></div>
 </div>
 
+<!-- ============ MENTOR ============ -->
+<div class="screen" id="scr-mentor">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>🎓 The Mentor</h2></div>
+  <div class="tabs" id="mentorTabs"></div>
+  <div id="mentorBody"></div>
+</div>
+
+<!-- ============ HEALTH ============ -->
+<div class="screen" id="scr-health">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>💚 Health Goals</h2></div>
+  <div class="tabs" id="healthTabs"></div>
+  <div id="healthBody"></div>
+</div>
+
+<!-- ============ HOW TO ============ -->
+<div class="screen" id="scr-howto">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>❓ How Mast HQ Works</h2></div>
+  <div id="howtoBody"></div>
+</div>
+
 <!-- ============ WING HUB ============ -->
 <div class="screen" id="scr-wing">
   <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2 id="wingTitle">Wing</h2></div>
@@ -906,6 +929,9 @@ async function nav(id){
   if(id === 'duel'){ duelOpen(); }
   if(id === 'pets'){ petsLoad(); }
   if(id === 'activity'){ actOpen(); }
+  if(id === 'mentor'){ mentorTab('mine'); }
+  if(id === 'health'){ await hlLoad(); healthTab('w'); }
+  if(id === 'howto'){ document.getElementById('howtoBody').innerHTML = HOWTO.map(([t,b])=>`<div class="lovecard"><h4>${t}</h4>${b}</div>`).join(''); }
   if(id === 'remind'){ rmLoad(); }
   if(id === 'home'){ await loadStats(); refreshWallet(); }
   if(id === 'chat'){ openChat(); }
@@ -1973,7 +1999,11 @@ function nextBday(bday){
 let CAL = [];
 async function calLoad(){
   CAL = (await sget('mast:cal')) || [];
+  if(!CALVIEW){ const n = new Date(); CALVIEW = {y:n.getFullYear(), m:n.getMonth()}; }
+  SELDAY = todayStr();
   document.getElementById('calDate').value = todayStr();
+  await calBuildMarks();
+  calMonth();
   calDraw();
 }
 async function calSave(){ await sset('mast:cal', CAL); }
@@ -1986,7 +2016,7 @@ async function calAdd(){
   CAL.push({id:uid(), title, date, time:document.getElementById('calTime').value||'', type:document.getElementById('calType').value, who});
   await calSave();
   document.getElementById('calTitle').value='';
-  toast('Added 📅'); logAct(`added to calendar: ${title} (${fmtD(date)})`); calDraw();
+  toast('Added 📅'); logAct(`added to calendar: ${title} (${fmtD(date)})`); calBuildMarks().then(calMonth); calDraw();
 }
 async function calClaim(id){
   const e = CAL.find(e=>e.id===id); if(!e) return;
@@ -1997,7 +2027,7 @@ async function calClaim(id){
 }
 async function calDel(id){
   if(!armDel('cal'+id)){ calDraw(); return; }
-  CAL = CAL.filter(e=>e.id!==id); await calSave(); calDraw();
+  CAL = CAL.filter(e=>e.id!==id); await calSave(); calBuildMarks().then(calMonth); calDraw();
 }
 function calDraw(){
   const t = todayStr();
@@ -3753,12 +3783,12 @@ const WINGS = {
  house:{title:'🏡 Run the House', tiles:[
   ['cal','#E0F5F1','📅','Calendar','events & pickups'],
   ['groc','#FFF0D4','🛒','Groceries','shared list'],
+  ['lib-food','#FFE3EC','🍳','Food & Fuel','kitchen calc · recipes'],
   ['gifts','#FFE3EC','🎁','Gifts & Birthdays','idea vault'],
   ['meds','#EAE6FB','💊','Meds & Rx','refills & nudges'],
   ['chores','#E0F5F1','🧹','Trading Floor','chores → 🙂'],
   ['xmas','#FFE9D6','🎄','Xmas HQ','budget & wrapping'],
   ['lib-homecare','#FFF0D4','🏠','Home Care','schedule · how-tos'],
-  ['lib-food','#FFE3EC','🍳','Food & Fuel','recipes · kitchen calc'],
   ['lib-garage','#E0F5F1','🚗','The Garage','service log · repairs'],
   ['money','#EAE6FB','💵','Money','bills · spending'],
   ['lib-med','#FFE3EC','🚑','Medical & Safety','first aid · ICE'],
@@ -3768,6 +3798,7 @@ const WINGS = {
  learn:{title:'🌱 Learn & Grow', tiles:[
   ['lib-travel','#E0F5F1','✈️','Travel HQ','bucket list · deals'],
   ['lib-fit','#EAE6FB','💪','Fitness','routines · muscle map'],
+  ['health','#E0F5F1','💚','Health Goals','weight · calories'],
   ['words','#FFF0D4','📖','Word Lab','dictionary · quiz'],
   ['lib-grow','#FFE3EC','🌱','Grow Together','communication · love'],
   ['lib-soul','#E0F5F1','🧘','Soul & Mind','big questions · coping'],
@@ -3775,7 +3806,8 @@ const WINGS = {
  ]},
  future:{title:'🔮 Build the Future', tiles:[
   ['map10','#FFF0D4','🗺️','10-Year Map','dreams on a timeline'],
-  ['decide','#EAE6FB','🗳️','Decision Log','"we agreed to that"']
+  ['decide','#EAE6FB','🗳️','Decision Log','"we agreed to that"'],
+  ['mentor','#FFF3D6','🎓','The Mentor','skills to acquire']
  ]},
  us:{title:'💞 Us', tiles:[
   ['sotu','#FFD9E5','📝','State of the Union','monthly check-in'],
@@ -4319,6 +4351,365 @@ function petsDraw(){
     </div>`;
   }).join('') || '<div class="center" style="opacity:.5; font-weight:700; padding:20px 0;">Add the real bosses of the household.</div>';
 }
+
+/* ================= V8 ================= */
+
+/* ---- MENTOR: skills to acquire ---- */
+const MENTOR_SUGG = [
+ ["CPR & First Aid certification","Because one of you being able to act in the worst five minutes of someone’s life is the highest-value skill on earth — and it takes one Saturday.","Book a Red Cross or Heart & Stroke course nearby (~4 hrs). Practice on the dummy until it’s muscle memory. Recertify every 2 years. Put the card in your wallet."],
+ ["Knife skills","Because every meal you’ll ever cook starts here — faster prep, safer hands, restaurant-looking food, and cooking becomes fun instead of a chore.","Learn the claw grip and rock chop (20 min of videos), then practice on one onion per day for two weeks. Keep the knife SHARP — dull knives cause the injuries."],
+ ["Personal investing basics","Because nobody cares about your money more than you, and 10 hours of learning is worth six figures over a lifetime.","Read one book (The Simple Path to Wealth or a beginner index-fund guide), open/verify retirement accounts, automate a monthly contribution. Done is better than perfect."],
+ ["Public speaking","Because careers quietly cap out on this one skill — and it transfers to weddings, toasts, and standing up for your family.","Join a local Toastmasters (cheap, weekly reps) or volunteer for every small presenting chance at work. Record yourself once a month; cringe is the curriculum."],
+ ["Basic home electrical & plumbing","Because a $400 service call is often a $12 part, and confidence in your own house changes how it feels to own one.","Work through the Home Care how-tos in this app one weekend at a time: outlet, faucet cartridge, toilet flapper, breaker map. Label your panel as the graduation project."],
+ ["Car maintenance fundamentals","Because oil, brakes, batteries, and tires are 80% of car trouble — and the Garage tab here is your textbook.","Do your next oil change yourself with the Garage guide, then a battery, then brake pads. Log each in the Service Log. Three jobs in, you’ll talk to mechanics differently."],
+ ["Conversational Spanish (or any language)","Because bilingual brains age better, travel gets 10× richer, and learning together is a built-in nightly ritual.","15 min/day on a free app, plus label 20 things in your house, plus one show with subtitles per week. Milestone: order dinner entirely in the language on a trip."],
+ ["Grilling & smoking meat","Because it’s delicious, social, cheaper than steakhouses, and a lifetime hobby that peaks at every family gathering.","Master one thing at a time: burgers → chicken thighs → ribs → brisket. Get a $15 instant-read thermometer. Keep a notebook of times and temps like a scientist."],
+ ["Photography basics","Because your life together deserves better than blurry phone pics — and the eye you develop lasts forever.","Learn exposure triangle + composition (rule of thirds) in a weekend. Then a 30-day one-photo-a-day challenge. Phone camera is plenty; the skill is seeing."],
+ ["Meditation & breathwork","Because a calm nervous system upgrades your marriage, sleep, patience, and health — and it’s free.","10 min/day guided (any free app) for 30 days straight. Add box breathing before stressful moments. The streak matters more than the duration."],
+ ["Bread baking","Because flour + water + salt + time = magic, your house smells incredible, and it impresses absolutely everyone.","Start with no-knead bread (5 min work, overnight rise). Nail it three times, then sourdough starter. Name the starter. This is mandatory."],
+ ["Negotiation","Because you re-earn this skill’s value every car, house, salary, and contractor quote for the rest of your life.","Read Never Split the Difference, then practice small: ask for a discount once a week anywhere. The reps kill the fear; the fear was the whole barrier."],
+ ["Run a 5K (together)","Because a shared physical goal is a marriage multiplier — training walks, race day, the medal photo.","Use the Couch-to-5K plan in Fitness: 3 runs/week for 8 weeks, pace of the slower runner. Sign up for a real race FIRST so the deadline is real."],
+ ["Ballroom / country dancing","Because weddings stop being awkward and start being your moment — and it’s date night with a syllabus.","One beginner series (6–8 weeks) at a local studio. Practice 10 minutes in the kitchen between classes. The kitchen practice is the actual point."]
+];
+let SKL = [];
+async function sklLoad(){ SKL = (await sget('mast:skills')) || []; }
+async function sklSave(){ await sset('mast:skills', SKL); }
+async function mentorAddToCal(name, date){
+  const cal = (await sget('mast:cal')) || [];
+  cal.push({id:uid(), title:'🎓 Skill deadline: '+name, date, time:'', type:'🎓', who:ME});
+  await sset('mast:cal', cal);
+  if(typeof CAL !== 'undefined') CAL = cal;
+}
+async function sklAdd(){
+  const n = document.getElementById('sklName').value.trim();
+  const d = document.getElementById('sklDate').value;
+  if(!n || !d){ toast('Needs a skill and a target date'); return; }
+  SKL.push({id:uid(), n, by:ME, target:d, done:false, how:''});
+  await sklSave();
+  await mentorAddToCal(n, d);
+  document.getElementById('sklName').value='';
+  logAct(`committed to learning: ${n} (by ${fmtD(d)})`);
+  toast('On the calendar. Mentor is watching. 🎓');
+  mentorTab('mine');
+}
+async function sklStart(i){
+  const s = MENTOR_SUGG[i];
+  const d = new Date(); d.setDate(d.getDate()+90);
+  const target = d.toISOString().slice(0,10);
+  SKL.push({id:uid(), n:s[0], by:ME, target, done:false, how:s[2]});
+  await sklSave();
+  await mentorAddToCal(s[0], target);
+  logAct(`committed to learning: ${s[0]}`);
+  sendText(`🎓 New quest accepted: ${s[0]} — deadline ${fmtD(target)}. Hold me to it.`);
+  toast(`Locked in — 90 days. It’s on the calendar 🎓`);
+  mentorTab('mine');
+}
+async function sklDone(id){
+  const s = SKL.find(s=>s.id===id);
+  s.done = !s.done;
+  await sklSave();
+  if(s.done){
+    await addCoins(10, 'SKILL ACQUIRED');
+    logAct(`🎓 SKILL ACQUIRED: ${s.n}`);
+    sendText(`🎓🏆 Skill acquired: ${s.n}!! Respect me accordingly.`);
+  }
+  mentorTab('mine');
+}
+async function sklDel(id){
+  if(!armDel('sk'+id)){ mentorTab('mine'); return; }
+  SKL = SKL.filter(s=>s.id!==id); await sklSave(); mentorTab('mine');
+}
+async function mentorTab(t){
+  document.getElementById('mentorTabs').innerHTML = [['mine','🎯 Our Quests'],['sugg','💡 Mentor Suggests']].map(([k,l])=>
+    `<button class="tab ${k===t?'on':''}" onclick="mentorTab('${k}')">${l}</button>`).join('');
+  const b = document.getElementById('mentorBody');
+  if(t==='mine'){
+    await sklLoad();
+    b.innerHTML = `<div class="card"><b>Commit to a skill</b>
+      <div style="display:grid; gap:8px; margin-top:8px;">
+        <input type="text" id="sklName" placeholder="e.g. Learn to weld" maxlength="40">
+        <div style="display:flex; gap:8px;"><input type="date" id="sklDate" class="dtin"><button class="btn teal" style="flex:1;" onclick="sklAdd()">🎓 Commit (adds to calendar)</button></div>
+      </div></div>` +
+      (SKL.map(s=>{
+        const dl = daysUntil(s.target);
+        return `<div class="card" ${s.done?'style="background:#E0F5F1;"':dl<0?'style="background:#FFE3EC;"':''}>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn small ${s.done?'teal':''}" onclick="sklDone('${s.id}')">${s.done?'🏆':'○'}</button>
+            <div style="flex:1;"><b style="${s.done?'text-decoration:line-through;':''}">${esc(s.n)}</b>
+            <div style="font-size:12px; font-weight:800; opacity:.65;">${AV[s.by]} · ${s.done?'ACQUIRED':dl<0?`❗ ${-dl}d overdue`:`due ${fmtD(s.target)} (${dl}d)`}</div></div>
+            <button class="btn small" onclick="sklDel('${s.id}')">✕</button>
+          </div>
+          ${s.how? `<div style="font-size:13px; font-weight:700; opacity:.8; margin-top:8px; border-top:2px dashed var(--line); padding-top:8px;">🗺️ ${esc(s.how)}</div>`:''}
+        </div>`;
+      }).join('') || '<div class="center" style="opacity:.5; font-weight:700; padding:16px 0;">No quests yet. The Mentor tab has ideas — or invent your own.</div>');
+  } else {
+    b.innerHTML = `<div class="card center" style="background:#FFF3D6;"><b>💡 The Mentor’s picks</b><div style="font-size:13px; font-weight:700; opacity:.75;">Skills chosen for maximum life-payoff per hour invested. Tap Start to commit — 90-day deadline, straight onto your calendar. Finishing pays +10 🙂.</div></div>` +
+      MENTOR_SUGG.map((s,i)=>`<div class="lovecard"><h4>🎓 ${s[0]}</h4>
+        <div style="font-size:14px;"><b>Why:</b> ${s[1]}</div>
+        <div style="font-size:14px; margin-top:6px;"><b>How:</b> ${s[2]}</div>
+        <button class="btn small pink" style="margin-top:10px;" onclick="sklStart(${i})">🎯 Start this quest (90 days)</button>
+      </div>`).join('');
+  }
+}
+
+/* ---- HEALTH: weight + calories ---- */
+let HL = null;
+async function hlLoad(){
+  HL = (await sget('mast:health')) || {p1:{goal:0, target:0, logs:[], food:[]}, p2:{goal:0, target:0, logs:[], food:[]}};
+  ['p1','p2'].forEach(p=>{ HL[p].logs = HL[p].logs||[]; HL[p].food = HL[p].food||[]; });
+}
+async function hlSave(){ await sset('mast:health', HL); }
+function healthTab(t){
+  document.getElementById('healthTabs').innerHTML = [['w','⚖️ Weight'],['c','🔥 Calories']].map(([k,l])=>
+    `<button class="tab ${k===t?'on':''}" onclick="healthTab('${k}')">${l}</button>`).join('');
+  if(t==='w') hlWeightDraw(); else hlCalDraw();
+}
+async function hlLogWeight(){
+  const w = parseFloat(document.getElementById('hlW').value);
+  if(!w){ toast('Enter a weight'); return; }
+  const me = HL[ME];
+  me.logs = me.logs.filter(l=>l.d!==todayStr());
+  me.logs.push({d:todayStr(), w});
+  me.logs = me.logs.slice(-60);
+  await hlSave();
+  document.getElementById('hlW').value='';
+  toast('Logged. Consistency beats perfection 💪');
+  hlWeightDraw();
+}
+async function hlSetGoal(){
+  const g = parseFloat(document.getElementById('hlGoal').value);
+  if(!g){ toast('Enter a goal weight'); return; }
+  HL[ME].goal = g; await hlSave(); hlWeightDraw();
+}
+async function hlWeightDraw(){
+  await hlLoad();
+  const me = HL[ME], logs = me.logs;
+  const cur = logs.length ? logs[logs.length-1].w : null;
+  const start = logs.length ? logs[0].w : null;
+  let prog = '';
+  if(cur!==null && me.goal && start!==null && start!==me.goal){
+    const pct = Math.max(0, Math.min(100, (start-cur)/(start-me.goal)*100));
+    const lost = (start-cur);
+    prog = `<div class="statline"><span>Progress</span><b>${lost>0? lost.toFixed(1)+' down':lost<0? (-lost).toFixed(1)+' up':'even'} · ${Math.abs(cur-me.goal).toFixed(1)} to goal</b></div>
+      <div style="border:3px solid var(--ink); border-radius:99px; height:16px; overflow:hidden; margin-top:4px;"><div style="width:${pct}%; height:100%; background:var(--teal);"></div></div>`;
+  }
+  const sp = HL[OTHER(ME)];
+  const spLine = sp.logs.length>1 ? (()=>{ const d = sp.logs[0].w - sp.logs[sp.logs.length-1].w; return d>0.05? `${esc(STATS[OTHER(ME)].name)} is down ${d.toFixed(1)} since starting — hype them up! 📣` : `${esc(STATS[OTHER(ME)].name)} is grinding too — cheer each other on 📣`; })() : '';
+  document.getElementById('healthBody').innerHTML = `
+    <div class="card"><b>⚖️ ${esc(STATS[ME].name)}’s tracker</b>
+      <div class="statline"><span>Current</span><b>${cur!==null? cur : '—'}</b></div>
+      <div class="statline"><span>Goal <input type="text" id="hlGoal" inputmode="decimal" value="${me.goal||''}" placeholder="?" style="max-width:70px; padding:4px;"> <button class="btn small" style="padding:3px 8px;" onclick="hlSetGoal()">set</button></span><b>${me.goal||'—'}</b></div>
+      ${prog}
+      <div class="sendrow" style="margin-top:10px;"><input type="text" id="hlW" inputmode="decimal" placeholder="Today’s weight"><button class="btn teal" onclick="hlLogWeight()">Log</button></div>
+      <div style="font-size:11px; font-weight:700; opacity:.6; margin-top:6px;">Same scale, same time of day (morning is best). Weekly weigh-ins beat daily obsessing. Aim for ~1–2 lbs/week — slow is what sticks.</div>
+    </div>
+    ${spLine? `<div class="card center" style="background:#FFD9E5; font-weight:800; font-size:14px;">${spLine}</div>`:''}
+    ${logs.length? `<div class="card"><b>History</b>${logs.slice(-10).reverse().map((l,i,arr)=>{
+      const prev = arr[i+1];
+      const d = prev? (l.w-prev.w) : 0;
+      return `<div class="statline"><span>${fmtD(l.d)}</span><b>${l.w} ${prev? `<span style="font-size:11px; color:${d<=0?'var(--teal)':'var(--pink-d)'};">${d>0?'+':''}${d.toFixed(1)}</span>`:''}</b></div>`;
+    }).join('')}</div>`:''}`;
+}
+async function hlSetTarget(){
+  const t = parseInt(document.getElementById('hlTarget').value);
+  if(!t){ toast('Enter a daily calorie target'); return; }
+  HL[ME].target = t; await hlSave(); hlCalDraw();
+}
+async function hlAddFood(){
+  const c = parseInt(document.getElementById('hlCal').value);
+  if(!c){ toast('How many calories?'); return; }
+  HL[ME].food.push({d:todayStr(), c, l:document.getElementById('hlLabel').value.trim()});
+  HL[ME].food = HL[ME].food.slice(-250);
+  await hlSave();
+  document.getElementById('hlCal').value=''; document.getElementById('hlLabel').value='';
+  hlCalDraw();
+}
+async function hlFoodDel(idx){
+  const t = todayStr();
+  const todays = HL[ME].food.filter(f=>f.d===t);
+  const item = todays[idx];
+  HL[ME].food = HL[ME].food.filter(f=>f!==item);
+  await hlSave(); hlCalDraw();
+}
+async function hlCalDraw(){
+  await hlLoad();
+  const me = HL[ME], t = todayStr();
+  const todays = me.food.filter(f=>f.d===t);
+  const tot = todays.reduce((s,f)=>s+f.c,0);
+  const pct = me.target? Math.min(100, tot/me.target*100) : 0;
+  const left = me.target - tot;
+  document.getElementById('healthBody').innerHTML = `
+    <div class="card"><b>🔥 Today — ${esc(STATS[ME].name)}</b>
+      <div class="center" style="font-size:30px; font-weight:900; margin:4px 0;">${tot}${me.target? `<span style="font-size:15px;"> / ${me.target}</span>`:''}</div>
+      ${me.target? `<div style="border:3px solid var(--ink); border-radius:99px; height:16px; overflow:hidden;"><div style="width:${pct}%; height:100%; background:${tot>me.target?'var(--pink-d)':'var(--teal)'};"></div></div>
+      <div class="center" style="font-weight:800; font-size:13px; margin-top:4px;">${left>=0? left+' left today' : (-1*left)+' over — tomorrow’s a new day, no drama'}</div>`:''}
+      <div class="sendrow" style="margin-top:10px;"><input type="text" id="hlCal" inputmode="numeric" placeholder="Calories"><input type="text" id="hlLabel" placeholder="What was it?" maxlength="24" style="flex:1.3;"><button class="btn small teal" onclick="hlAddFood()">＋</button></div>
+      <div class="statline" style="margin-top:8px;"><span>Daily target <input type="text" id="hlTarget" inputmode="numeric" value="${me.target||''}" placeholder="?" style="max-width:70px; padding:4px;"></span><button class="btn small" onclick="hlSetTarget()">set</button></div>
+      <div style="font-size:11px; font-weight:700; opacity:.6; margin-top:6px;">A rough target: goal weight (lbs) × 12–14 for steady loss, ×15 to maintain. Protein first — it keeps you full. Don’t drink your calories.</div>
+    </div>
+    ${todays.length? `<div class="card"><b>Today’s log</b>${todays.map((f,i)=>`<div class="statline"><span>${esc(f.l||'entry')}</span><span><b>${f.c}</b> <button class="btn small" style="padding:2px 8px; box-shadow:2px 2px 0 var(--ink);" onclick="hlFoodDel(${i})">✕</button></span></div>`).join('')}</div>`:''}`;
+}
+
+/* ---- MONTH CALENDAR ---- */
+let CALVIEW = null, CALMARKS = {}, SELDAY = todayStr();
+async function calBuildMarks(){
+  CALMARKS = {};
+  const push = (d, e) => { if(!d) return; (CALMARKS[d] = CALMARKS[d] || []).push(e); };
+  CAL.forEach(e=>push(e.date, e.type));
+  const [gf, pets, hc, md] = await Promise.all([sget('mast:gifts'), sget('mast:pets'), sget('mast:homecare'), sget('mast:meds')]);
+  const y = CALVIEW.y;
+  const bd = (bday, emoji) => {
+    if(!bday) return;
+    const md2 = bday.slice(5);
+    push(`${y}-${md2}`, emoji);
+    push(`${y+1}-${md2}`, emoji);
+  };
+  ((gf&&gf.people)||[]).forEach(p=>bd(p.bday,'🎂'));
+  (pets||[]).forEach(p=>bd(p.bday,'🐾'));
+  (hc||[]).forEach(h=>{
+    if(h.last){ const d = new Date(h.last+'T12:00:00'); d.setMonth(d.getMonth()+h.months); push(d.toISOString().slice(0,10),'🏠'); }
+  });
+  (md||[]).forEach(m=>{ if(m.refill) push(m.refill,'💊'); });
+  push(`${y}-12-25`,'🎄'); push(`${y+1}-12-25`,'🎄');
+}
+function calMonth(){
+  const {y, m} = CALVIEW;
+  const first = new Date(y, m, 1).getDay();
+  const days = new Date(y, m+1, 0).getDate();
+  const monthName = new Date(y, m, 15).toLocaleDateString(undefined,{month:'long', year:'numeric'});
+  let cells = '<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:2px; font-weight:900; font-size:10px; text-align:center; opacity:.6;">' +
+    ['S','M','T','W','T','F','S'].map(d=>`<div>${d}</div>`).join('') + '</div>';
+  cells += '<div style="display:grid; grid-template-columns:repeat(7,1fr); gap:2px;">';
+  for(let i=0;i<first;i++) cells += '<div></div>';
+  for(let d=1; d<=days; d++){
+    const ds = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const marks = (CALMARKS[ds]||[]).slice(0,2).join('');
+    const today = ds===todayStr(), sel = ds===SELDAY;
+    cells += `<button onclick="calPick('${ds}')" style="min-height:44px; padding:1px; border:2px solid ${sel?'var(--pink)':today?'var(--teal)':'rgba(51,34,42,.2)'}; border-radius:8px; background:${sel?'#FFE3EC':today?'#E0F5F1':'#fff'}; font-weight:900; font-size:12px; line-height:1.1;">${d}<br><span style="font-size:11px;">${marks||'&nbsp;'}</span></button>`;
+  }
+  cells += '</div>';
+  document.getElementById('calMonth').innerHTML = `
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+      <button class="btn small" onclick="calNav(-1)">◀</button>
+      <b style="flex:1; text-align:center;">${monthName}</b>
+      <button class="btn small" onclick="calNav(1)">▶</button>
+    </div>${cells}
+    <div style="font-size:10px; font-weight:800; opacity:.55; margin-top:4px; text-align:center;">🎂 birthdays · 🐾 pets · 🏠 home care due · 💊 refills · plus all your events</div>`;
+  calDayList();
+}
+async function calNav(d){
+  CALVIEW.m += d;
+  if(CALVIEW.m<0){ CALVIEW.m=11; CALVIEW.y--; }
+  if(CALVIEW.m>11){ CALVIEW.m=0; CALVIEW.y++; }
+  await calBuildMarks(); calMonth();
+}
+function calPick(ds){
+  SELDAY = ds;
+  document.getElementById('calDate').value = ds;
+  calMonth();
+}
+function calDayList(){
+  const evs = CAL.filter(e=>e.date===SELDAY).sort((a,b)=>(a.time||'').localeCompare(b.time||''));
+  const marks = (CALMARKS[SELDAY]||[]).filter(m=>!evs.some(e=>e.type===m));
+  document.getElementById('calDayEvents').innerHTML =
+    `<div style="font-weight:900; font-size:13px; margin:8px 2px 4px;">${fmtD(SELDAY)}</div>` +
+    (evs.map(e=>`<div class="statline" style="background:#fff; border:2.5px solid var(--ink); border-radius:12px; padding:7px 12px; margin:4px 0;">
+      <span>${e.type} ${esc(e.title)}</span><b style="font-size:12px;">${e.time||'all day'} · ${whoChip(e.who)}</b></div>`).join('') +
+     (marks.length? `<div class="statline" style="padding:4px 8px;"><span style="font-size:12px; opacity:.7;">Also: ${marks.join(' ')} (birthday / due date)</span><span></span></div>`:'') ||
+     '<div style="font-size:13px; font-weight:700; opacity:.5; padding:4px 8px;">Nothing on this day — it’s all yours.</div>');
+}
+
+/* ---- HEADS UP + WEATHER (daily drops v2) ---- */
+const SEASON_TIPS = [
+ '❄️ January: change the furnace filter, and run ceiling fans clockwise to push warm air down.',
+ '❄️ February: test smoke & CO detectors — batteries die in winter. Check for ice dams after storms.',
+ '🌱 March: spring is coming — clean gutters, check the sump pump, and book AC service before the rush.',
+ '🌱 April: fertilize the lawn, check window screens, and inspect the roof from the ground after winter.',
+ '🌸 May: AC filter in, hoses back on, deck inspection — and mosquito-proof standing water.',
+ '☀️ June: grill safety check (grease trap!), reprogram irrigation, and clean the dryer vent.',
+ '☀️ July: peak AC month — keep the filter fresh and the outdoor unit clear of debris.',
+ '☀️ August: check caulking and weatherstripping while it’s warm — fall fixes are winter savings.',
+ '🍂 September: furnace tune-up time (beat the rush), clean gutters as leaves start, seal driveway cracks.',
+ '🍂 October: winterize outdoor faucets and sprinklers, reverse ceiling fans, test the furnace NOW.',
+ '❄️ November: disconnect hoses (burst-pipe season!), stock ice melt, check the snowblower before the first storm.',
+ '🎄 December: real tree? Water daily. Lights off overnight. And enjoy it — the maintenance can wait a week.'
+];
+async function wxEnable(){
+  if(!navigator.geolocation){ toast('No location on this device'); return; }
+  navigator.geolocation.getCurrentPosition(pos=>{
+    localStorage.setItem('wx:lat', pos.coords.latitude.toFixed(3));
+    localStorage.setItem('wx:lon', pos.coords.longitude.toFixed(3));
+    localStorage.setItem('wx:on','1');
+    toast('Weather enabled ⛅');
+    dailyDraw();
+  }, ()=>toast('Location permission needed for weather'));
+}
+async function wxLine(){
+  if(localStorage.getItem('wx:on')!=='1') return null;
+  try{
+    const lat = localStorage.getItem('wx:lat'), lon = localStorage.getItem('wx:lon');
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max&timezone=auto&forecast_days=1`);
+    const j = await r.json();
+    const hi = Math.round(j.daily.temperature_2m_max[0]), lo = Math.round(j.daily.temperature_2m_min[0]), pp = j.daily.precipitation_probability_max[0];
+    const hiF = Math.round(hi*9/5+32), loF = Math.round(lo*9/5+32);
+    let alert = '';
+    if(lo<=0) alert = ' · 🥶 FREEZE tonight — hoses off, drip the taps';
+    else if(hi>=33) alert = ' · 🥵 heat alert — hydrate, check the pets';
+    if(pp>=60) alert += ` · ☔ ${pp}% precip — grab the umbrellas`;
+    return `⛅ Today: ${hi}° / ${lo}°C (${hiF}°/${loF}°F)${alert}`;
+  }catch(e){ return null; }
+}
+async function dailyDraw(){
+  const el = document.getElementById('hqDaily');
+  if(!el) return;
+  const w = WOTD[dayIndex() % WOTD.length];
+  const f = FACTS[(dayIndex()+13) % FACTS.length];
+  const claimed = (await pget('mast:wotd')) === todayStr();
+  // heads up
+  const ups = [];
+  const wx = await wxLine();
+  if(wx) ups.push(wx);
+  else if(localStorage.getItem('wx:on')!=='1') ups.push(`<button class="btn small" style="padding:3px 10px;" onclick="wxEnable()">⛅ Enable local weather</button>`);
+  try{
+    const [cal, gf, pets, hc, md] = await Promise.all([sget('mast:cal'), sget('mast:gifts'), sget('mast:pets'), sget('mast:homecare'), sget('mast:meds')]);
+    const t = todayStr();
+    const soon = d => { const n = daysUntil(d); return n>=0 && n<=3; };
+    (cal||[]).filter(e=>e.date>t && soon(e.date)).slice(0,2).forEach(e=>ups.push(`${e.type} ${esc(e.title)} — ${fmtD(e.date)}${e.time? ' '+e.time:''}`));
+    ((gf&&gf.people)||[]).forEach(p=>{ if(p.bday){ const b = nextBday(p.bday); if(b.days<=14) ups.push(`🎂 ${esc(p.name)}’s birthday in ${b.days===0?'— TODAY!':b.days+' days'}${b.days<=14 && b.days>0?' — gift sorted?':''}`); }});
+    (pets||[]).forEach(p=>{ if(p.bday){ const b = nextBday(p.bday); if(b.days<=7) ups.push(`🐾 ${esc(p.n)}’s birthday in ${b.days===0?'— TODAY! Extra treats!':b.days+' days'}`); }});
+    (hc||[]).forEach(h=>{ if(h.last){ const d = new Date(h.last+'T12:00:00'); d.setMonth(d.getMonth()+h.months); const dl = daysUntil(d.toISOString().slice(0,10)); if(dl<=7) ups.push(`🏠 ${esc(h.name)} ${dl<=0?'is DUE':'due in '+dl+'d'}`); }});
+    (md||[]).forEach(m=>{ if(m.refill){ const dl = daysUntil(m.refill); if(dl<=5) ups.push(`💊 ${esc(m.name)} refill ${dl<0?'OVERDUE':dl===0?'due today':'in '+dl+'d'}`); }});
+    const xd = daysUntil(new Date().getFullYear()+'-12-25');
+    if(xd>0 && xd<=45) ups.push(`🎄 ${xd} days to Christmas — Xmas HQ says hi`);
+  }catch(e){}
+  ups.push(SEASON_TIPS[new Date().getMonth()]);
+  el.innerHTML = `<b>✨ Daily Drops</b>
+    <div style="margin-top:6px;">${ups.slice(0,6).map(u=>`<div style="font-size:13px; font-weight:800; padding:5px 8px; margin:4px 0; background:#FFF6EA; border:2px dashed var(--ink); border-radius:10px;">${u}</div>`).join('')}</div>
+    <div class="statline" style="align-items:flex-start;" onclick="nav('words')"><span style="font-size:13px;">📖 Word of the day ›</span>
+      <span style="text-align:right; max-width:65%;"><b>${w[0]}</b><br><span style="font-size:12px; font-weight:700; opacity:.75;">${w[1]}</span></span></div>
+    <button class="btn small ${claimed?'teal':'gold'} block" style="margin:8px 0;" onclick="wotdClaim()" ${claimed?'disabled':''}>${claimed?'✓ Used it today — nice':'I used it in a sentence today · +1 🙂'}</button>
+    <div class="statline" style="align-items:flex-start;"><span style="font-size:13px;">🤯 Tidbit</span><span style="text-align:right; max-width:70%; font-size:13px; font-weight:700;">${f}</span></div>`;
+}
+
+/* ---- HOW-TO GUIDE ---- */
+const HOWTO = [
+ ['🏠 What is this?','Mast HQ is your private two-person operating system: games, house logistics, money, health, and marriage tools — all syncing between exactly two phones. Nobody else can see any of it.'],
+ ['🔄 How syncing works','Everything shared (lists, chess, chat, money…) lives in your own private Firebase database, found by your house key. Both phones point at the same key, so a change on one appears on the other within seconds. Personal bits (who you are on this phone) stay on the phone.'],
+ ['🙂 vs ⭐ — the economy','Smiley coins come from mini games, chores, check-ins, and skills — and can be BET at the casino or SPENT in the Trading Floor reward store. Stars are pure glory: chess and battleship victories only. The leaderboard crowns whoever leads overall.'],
+ ['🗺️ Finding things','Five doors on the home screen: the Arcade (games), Run the House (logistics), Learn & Grow (content + tools), Build the Future (dreams, decisions, skills), and Us (the marriage stuff). The 📅 and 📥 icons up top are shortcuts to the calendar and your inbox/activity feed.'],
+ ['📥 The inbox','The 📥 icon shows a ! when your spouse has done something since you last looked. Inside: reminders waiting on you, plus the full activity log of who did what, when.'],
+ ['🔔 Nudges','Reminders can target yourself or your spouse — a nudge pings their chat and lands in their inbox. Completing one announces itself. Passive-aggression, industrialized. Lovingly.'],
+ ['📲 Home screen app','Open the site in your browser → menu → Add to Home Screen. It becomes an icon and opens full-screen like a real app on both phones.'],
+ ['⬆️ Updates','New versions are one file. Replace index.html on the host (GitHub: Add file → Upload files → Commit) and both phones get it on next open. Data never blinks — it lives in Firebase, not the file.'],
+ ['🔌 If sync ever breaks','Leaderboard → Connection card: both phones must show the exact same database and house key. Fix, reopen, done. Changing connection never deletes data.'],
+ ['💡 Pro tips','Log the Word of the Day daily (+1 🙂 compounds). Post chores before doing them — free coins. Word Duel resets at midnight. And the compliment generator has a send button. Use it shamelessly.']
+];
+
+/* run at load: kitchen calc becomes first Food & Fuel tab */
+(function(){
+  const i = LIB.food.tabs.findIndex(t=>t[0]==='calc');
+  if(i>0) LIB.food.tabs.unshift(LIB.food.tabs.splice(i,1)[0]);
+})();
 
 </script>
 </body>
