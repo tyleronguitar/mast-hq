@@ -287,6 +287,16 @@ input[type=range]{accent-color:var(--pink); height:30px;}
     <button class="gcard" style="background:#EAE6FB;" onclick="nav('trivia')"><span class="ico">❓</span>Date Night Trivia<span class="sub">8 questions</span></button>
     <button class="gcard" style="background:#E0F5F1;" onclick="nav('runner')"><span class="ico">🐶</span>Pug Dash<span class="sub">Jump the cats!</span></button>
     <button class="gcard" style="background:#FFE3EC;" onclick="nav('tetris')"><span class="ico">🟪</span>Bone Blocks<span class="sub">Tetris, dog edition</span></button>
+    <button class="gcard" style="background:#FFF0D4;" onclick="nav('crush')"><span class="ico">🍬</span>Pup Crush<span class="sub">Match-3 madness</span></button>
+    <button class="gcard" style="background:#EAE6FB;" onclick="nav('mah')"><span class="ico">🀄</span>Mahjong Garden<span class="sub">Clear the pairs</span></button>
+    <button class="gcard" style="background:#E0F5F1;" onclick="nav('bship')"><span class="ico">⚓</span>Battleship<span class="sub">Two phones · win ⭐⭐</span></button>
+    <button class="gcard" style="background:#FFE3EC;" onclick="nav('duel')"><span class="ico">⚔️</span>Word Duel<span class="sub">Daily · best word wins</span></button>
+  </div>
+
+  <div class="sect">The Casino — bet your 🙂</div>
+  <div class="grid">
+    <button class="gcard" style="background:#FFF3D6;" onclick="nav('slots')"><span class="ico">🎰</span>Pug Slots<span class="sub">VLT · jackpots up to 30×</span></button>
+    <button class="gcard" style="background:#E0F5F1;" onclick="nav('bjack')"><span class="ico">🃏</span>Blackjack<span class="sub">Beat the dealer</span></button>
   </div>
 
   <div class="sect">Us</div>
@@ -442,6 +452,8 @@ input[type=range]{accent-color:var(--pink); height:30px;}
       <span class="chip">⭐ <span id="chipStars2">0</span></span>
       <span class="chip">🙂 <span id="chipCoins2">0</span></span>
       <span class="chip" id="chipMe2">🐕 You</span>
+      <button class="chip" style="font-size:16px;" onclick="nav('cal')">📅</button>
+      <button class="chip" style="font-size:16px; position:relative;" onclick="nav('activity')">📥<span id="actBadge" class="badge hidden" style="position:absolute; top:-6px; right:-6px;">!</span></button>
     </div>
   </div>
 
@@ -492,7 +504,7 @@ input[type=range]{accent-color:var(--pink); height:30px;}
       <input type="text" id="calTitle" placeholder="What is it? (e.g. Emma pickup)" maxlength="40">
       <div style="display:flex; gap:8px;"><input type="date" id="calDate" class="dtin"><input type="time" id="calTime" class="dtin"></div>
       <div style="display:flex; gap:8px;">
-        <select id="calType" class="dtin"><option value="📅">📅 Event</option><option value="🚗">🚗 Kid pickup</option><option value="🩺">🩺 Appointment</option><option value="🎉">🎉 Party</option><option value="✈️">✈️ Trip</option><option value="🏫">🏫 School</option></select>
+        <select id="calType" class="dtin"><option value="📅">📅 Event</option><option value="🚗">🚗 Kid pickup</option><option value="🩺">🩺 Appointment</option><option value="🎉">🎉 Party</option><option value="✈️">✈️ Trip</option><option value="🏫">🏫 School</option><option value="🐾">🐾 Pet / vet</option></select>
         <select id="calWho" class="dtin"><option value="un">❗ Needs a driver</option><option value="me">Me</option><option value="them">My love</option><option value="both">💑 Both of us</option></select>
       </div>
       <button class="btn teal" onclick="calAdd()">Add to calendar</button>
@@ -656,6 +668,96 @@ input[type=range]{accent-color:var(--pink); height:30px;}
   </div>
 </div>
 
+<!-- ============ SLOTS ============ -->
+<div class="screen" id="scr-slots">
+  <div class="topbar"><button class="back" onclick="nav('home')">←</button><h2>🎰 Pug Slots</h2></div>
+  <div class="gamestage center">
+    <div style="font-size:44px; letter-spacing:6px; background:#fff; border:3px solid var(--ink); border-radius:14px; padding:16px 6px; margin-bottom:10px;" id="slotReels">🐶 🦴 🐾</div>
+    <div style="font-weight:900; min-height:24px;" id="slotMsg"></div>
+    <div class="sendrow" style="justify-content:center;">
+      <select id="slotBet" class="dtin" style="max-width:110px;"><option value="1">Bet 1 🙂</option><option value="2">Bet 2 🙂</option><option value="5">Bet 5 🙂</option><option value="10">Bet 10 🙂</option></select>
+      <button class="btn pink" onclick="slotSpin()">🎰 SPIN</button>
+    </div>
+    <div style="font-weight:800; font-size:13px; margin-top:8px;">Bank: <span id="slotBank">0</span> 🙂</div>
+    <div style="font-size:11px; font-weight:700; opacity:.6; margin-top:6px;">3×💎 = 30× · 3×7️⃣ = 20× · any 3 = 10× · any pair = 2×<br>The house is your marriage. The house always wins.</div>
+  </div>
+</div>
+
+<!-- ============ BLACKJACK ============ -->
+<div class="screen" id="scr-bjack">
+  <div class="topbar"><button class="back" onclick="nav('home')">←</button><h2>🃏 Blackjack</h2></div>
+  <div class="gamestage">
+    <div style="font-weight:900; font-size:13px;">🎩 Dealer</div>
+    <div id="bjDealer" style="min-height:44px; margin:4px 0 10px;"></div>
+    <div style="font-weight:900; font-size:13px;">You</div>
+    <div id="bjMe" style="min-height:44px; margin:4px 0 10px;"></div>
+    <div class="center" style="font-weight:800; min-height:22px;" id="bjMsg"></div>
+    <div class="sendrow" id="bjDealRow" style="justify-content:center;">
+      <select id="bjBet" class="dtin" style="max-width:110px;"><option value="1">Bet 1 🙂</option><option value="2">Bet 2 🙂</option><option value="5">Bet 5 🙂</option><option value="10">Bet 10 🙂</option></select>
+      <button class="btn pink" onclick="bjDeal()">Deal</button>
+    </div>
+    <div class="sendrow" id="bjButtons" style="justify-content:center; display:none;">
+      <button class="btn teal" onclick="bjHit()">Hit 👊</button>
+      <button class="btn gold" onclick="bjStand()">Stand ✋</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ BATTLESHIP ============ -->
+<div class="screen" id="scr-bship">
+  <div class="topbar"><button class="back" onclick="nav('home')">←</button><h2>⚓ Battleship</h2></div>
+  <div id="bsBody"></div>
+</div>
+
+<!-- ============ PUP CRUSH ============ -->
+<div class="screen" id="scr-crush">
+  <div class="topbar"><button class="back" onclick="nav('home')">←</button><h2>🍬 Pup Crush</h2></div>
+  <div class="gamestage">
+    <div class="scorebar" id="crStats"></div>
+    <div style="display:grid; grid-template-columns:repeat(8,1fr); gap:3px;" id="crGrid"></div>
+    <div style="font-size:12px; font-weight:700; opacity:.6; margin-top:6px;">Tap two neighbors to swap. Match 3+. 20 moves. Cascades multiply!</div>
+  </div>
+  <button class="btn teal block" onclick="crushNew()">New board</button>
+</div>
+
+<!-- ============ MAHJONG ============ -->
+<div class="screen" id="scr-mah">
+  <div class="topbar"><button class="back" onclick="nav('home')">←</button><h2>🀄 Mahjong Garden</h2></div>
+  <div class="gamestage">
+    <div class="scorebar" id="mjStats"></div>
+    <div style="display:grid; grid-template-columns:repeat(8,1fr); gap:3px;" id="mjGrid"></div>
+    <div style="font-size:12px; font-weight:700; opacity:.6; margin-top:6px;">Match pairs — but a tile is only free if nothing sits to its left OR right. Clear the garden for +8 🙂.</div>
+  </div>
+  <button class="btn teal block" onclick="mjNew()">New garden</button>
+</div>
+
+<!-- ============ WORD DUEL ============ -->
+<div class="screen" id="scr-duel">
+  <div class="topbar"><button class="back" onclick="nav('home')">←</button><h2>⚔️ Word Duel</h2></div>
+  <div id="duelBody"></div>
+</div>
+
+<!-- ============ PETS ============ -->
+<div class="screen" id="scr-pets">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>🐾 The Pets</h2></div>
+  <div class="card">
+    <b>Add a family member</b>
+    <div style="display:flex; gap:8px; margin-top:8px;">
+      <select id="petSp" class="dtin" style="max-width:80px;"><option>🐶</option><option>🐱</option><option>🐰</option><option>🐦</option><option>🐠</option><option>🦎</option><option>🐴</option><option>🐹</option></select>
+      <input type="text" id="petName" placeholder="Name" maxlength="18" style="flex:1.4;">
+      <input type="date" id="petBday" class="dtin" style="flex:1.4;">
+    </div>
+    <button class="btn teal block" onclick="petAdd()">Add pet</button>
+  </div>
+  <div id="petList"></div>
+</div>
+
+<!-- ============ ACTIVITY / INBOX ============ -->
+<div class="screen" id="scr-activity">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>📥 Inbox &amp; Activity</h2></div>
+  <div id="actBody"></div>
+</div>
+
 <!-- ============ WING HUB ============ -->
 <div class="screen" id="scr-wing">
   <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2 id="wingTitle">Wing</h2></div>
@@ -759,11 +861,13 @@ async function addCoins(n, why){
   await loadStats();
   STATS[ME].coins += n; await saveStats();
   refreshWallet(); toast(`+${n} 🙂 smiley coins${why? ' · '+why : ''}!`);
+  if(typeof logAct==='function' && why) logAct(`+${n} 🙂 — ${why}`);
 }
 async function addStars(n, who, why){
   await loadStats();
   STATS[who||ME].stars += n; await saveStats();
   refreshWallet(); toast(`+${n} ⭐ star${n>1?'s':''}${why? ' · '+why : ''}!`);
+  if(typeof logAct==='function' && why) logAct(`+${n} ⭐ — ${why}`);
 }
 async function setBest(game, score, lowerIsBetter){
   await loadStats();
@@ -788,10 +892,20 @@ function show(id){
 async function nav(id){
   clearInterval(feedTimer); feedTimer = null;
   if(id !== 'chess'){ clearInterval(chessTimer); chessTimer = null; }
+  if(id !== 'bship'){ clearInterval(bsTimer); bsTimer = null; }
   if(id.indexOf('wing-')===0){ openWing(id.slice(5)); return; }
   if(id.indexOf('lib-')===0){ await loadStats(); openLib(id.slice(4)); return; }
   if(id === 'money'){ moneyLoad(); }
   if(id === 'words'){ wordsOpen(); }
+  if(id === 'remindX'){ }
+  if(id === 'slots'){ slotsOpen(); }
+  if(id === 'bjack'){ bjOpen(); }
+  if(id === 'bship'){ bsStart(); }
+  if(id === 'crush'){ crushNew(); }
+  if(id === 'mah'){ mjNew(); }
+  if(id === 'duel'){ duelOpen(); }
+  if(id === 'pets'){ petsLoad(); }
+  if(id === 'activity'){ actOpen(); }
   if(id === 'remind'){ rmLoad(); }
   if(id === 'home'){ await loadStats(); refreshWallet(); }
   if(id === 'chat'){ openChat(); }
@@ -1366,6 +1480,7 @@ async function announceEnd(iMoved){
         await saveStats(); await sset('mast:chess', CG);
         refreshWallet();
         toast(winP===ME ? '👑 Victory! +3 ⭐ — go gloat in chat!' : `${STATS[winP].name} takes it. +3 ⭐ to them.`);
+        logAct(winP===ME ? 'won at chess ♛ (+3 ⭐)' : `lost at chess to ${STATS[winP].name}`);
         await sendText(winP===ME ? `🏆 Checkmate!! ${STATS[winP].name} wins the chess battle! ♛` : `🤝 GG — ${STATS[winP].name} wins this one.`);
       }
     } else if(CG.mode==='solo'){
@@ -1835,6 +1950,12 @@ async function hqRefresh(){
   if(grocOpen) html += `<div class="statline"><span>🛒 Grocery list</span><b>${grocOpen} item${grocOpen>1?'s':''}</b></div>`;
   if(medsDue) html += `<div class="statline"><span>💊 Meds not logged</span><b>${medsDue}</b></div>`;
   if(nextB) html += `<div class="statline"><span>🎂 Next birthday</span><b>${esc(nextB.name)} in ${nextB.days}d</b></div>`;
+  try{
+    const acts = (await sget('mast:activity')) || [];
+    const seen = (await pget('mast:actseen')) || 0;
+    const fresh = acts.some(x=>x.ts>seen && x.by!==ME);
+    document.getElementById('actBadge').classList.toggle('hidden', !fresh);
+  }catch(e){}
   const rm = (await sget('mast:remind')) || [];
   const myOpen = rm.filter(r=>r.who===ME && !r.done);
   if(myOpen.length) html += `<div class="statline" style="color:var(--pink-d);" onclick="nav('remind')"><span>🔔 Reminders for you ›</span><b>${myOpen.length}: ${esc(myOpen[0].t.slice(0,26))}${myOpen[0].t.length>26?'…':''}</b></div>`;
@@ -1865,13 +1986,14 @@ async function calAdd(){
   CAL.push({id:uid(), title, date, time:document.getElementById('calTime').value||'', type:document.getElementById('calType').value, who});
   await calSave();
   document.getElementById('calTitle').value='';
-  toast('Added 📅'); calDraw();
+  toast('Added 📅'); logAct(`added to calendar: ${title} (${fmtD(date)})`); calDraw();
 }
 async function calClaim(id){
   const e = CAL.find(e=>e.id===id); if(!e) return;
   e.who = ME; await calSave(); calDraw();
   sendText(`✅ I've got it: ${e.type} ${e.title} on ${fmtD(e.date)}`);
   toast('Claimed! Your love has been notified 💬');
+  logAct(`claimed: ${e.type} ${e.title}`);
 }
 async function calDel(id){
   if(!armDel('cal'+id)){ calDraw(); return; }
@@ -2142,7 +2264,7 @@ async function rewardBuy(id){
   CH.log = CH.log.slice(0,12);
   await choreSave();
   sendText(`🎁 I'm cashing in ${r.cost} 🙂 for: "${r.name}" — no take-backs!`);
-  toast('Redeemed! Enjoy it 😎'); choreDraw();
+  toast('Redeemed! Enjoy it 😎'); logAct(`redeemed reward: ${r.name} (−${r.cost} 🙂)`); choreDraw();
 }
 async function rewardDel(id){
   if(!armDel('rw'+id)){ choreDraw(); return; }
@@ -3066,6 +3188,7 @@ async function spendAdd(){
   SPEND = SPEND.slice(0,200);
   await sset('mast:spend', SPEND);
   document.getElementById('spAmt').value='';
+  logAct(`logged $${a} — ${SPEND[0].cat}`);
   spendDraw();
 }
 async function spendDel(id){ if(!armDel('sp'+id)){ spendDraw(); return; } SPEND = SPEND.filter(s=>s.id!==id); await sset('mast:spend', SPEND); spendDraw(); }
@@ -3639,7 +3762,8 @@ const WINGS = {
   ['lib-garage','#E0F5F1','🚗','The Garage','service log · repairs'],
   ['money','#EAE6FB','💵','Money','bills · spending'],
   ['lib-med','#FFE3EC','🚑','Medical & Safety','first aid · ICE'],
-  ['remind','#FFF0D4','🔔','Reminders','nudge each other']
+  ['remind','#FFF0D4','🔔','Reminders','nudge each other'],
+  ['pets','#E0F5F1','🐾','The Pets','meds · vet · birthdays']
  ]},
  learn:{title:'🌱 Learn & Grow', tiles:[
   ['lib-travel','#E0F5F1','✈️','Travel HQ','bucket list · deals'],
@@ -3666,6 +3790,534 @@ function openWing(w){
   document.getElementById('wingGrid').innerHTML = wing.tiles.map(([tgt,bg,ico,label,sub])=>
     `<button class="gcard" style="background:${bg};" onclick="nav('${tgt}')"><span class="ico">${ico}</span>${label}<span class="sub">${sub}</span></button>`).join('');
   show('wing');
+}
+
+/* ================= V7 ================= */
+
+/* ---- ACTIVITY LOG ---- */
+async function logAct(t){
+  try{
+    const a = (await sget('mast:activity')) || [];
+    a.unshift({t, by:ME, ts:Date.now()});
+    await sset('mast:activity', a.slice(0,80));
+  }catch(e){}
+}
+async function actOpen(){
+  const [a, rm] = await Promise.all([sget('mast:activity'), sget('mast:remind')]);
+  const acts = a || [];
+  if(acts.length) await pset('mast:actseen', acts[0].ts);
+  const myOpen = (rm||[]).filter(r=>r.who===ME && !r.done);
+  const fmtT = ts => {
+    const d = new Date(ts);
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}) + ' ' + d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  };
+  document.getElementById('actBody').innerHTML =
+    (myOpen.length? `<div class="sect">🔔 Waiting on you</div>` + myOpen.map(r=>`
+      <div class="card" style="padding:8px 12px; margin:6px 0; display:flex; align-items:center; gap:8px; background:#FFE3EC;">
+        <b style="flex:1; font-size:14px;">${esc(r.t)}</b>
+        <button class="btn small teal" onclick="rmToggle('${r.id}').then(actOpen)">✓ Done</button>
+      </div>`).join('') : '') +
+    `<div class="sect">🧾 Activity</div>` +
+    (acts.map(x=>`<div class="statline" style="background:#fff; border:2.5px solid var(--ink); border-radius:12px; padding:7px 12px; margin:5px 0; align-items:flex-start;">
+      <span style="font-size:13px;">${AV[x.by]} ${esc(x.t)}</span><b style="font-size:11px; opacity:.55; white-space:nowrap; margin-left:8px;">${fmtT(x.ts)}</b>
+    </div>`).join('') || '<div class="center" style="opacity:.5; font-weight:700; padding:20px 0;">Nothing yet — go live a little.</div>');
+}
+
+/* ---- COIN SPEND HELPER ---- */
+async function spendCoins(n){
+  await loadStats();
+  if(STATS[ME].coins < n){ toast(`Not enough 🙂 — you have ${STATS[ME].coins}`); return false; }
+  STATS[ME].coins -= n; await saveStats(); refreshWallet();
+  return true;
+}
+
+/* ================= PUG SLOTS (VLT) ================= */
+const SLOT_SYM = ['🐶','🦴','🐾','❤️','🍒','💎','7️⃣'];
+let SLOT = {spin:null};
+function slotsOpen(){
+  document.getElementById('slotReels').textContent = '🐶 🦴 🐾';
+  document.getElementById('slotMsg').textContent = 'Pick a bet and pull the lever!';
+  refreshWallet();
+  document.getElementById('slotBank').textContent = STATS[ME].coins;
+}
+async function slotSpin(){
+  if(SLOT.spin) return;
+  const bet = parseInt(document.getElementById('slotBet').value);
+  if(!(await spendCoins(bet))) return;
+  document.getElementById('slotBank').textContent = STATS[ME].coins;
+  document.getElementById('slotMsg').textContent = '…';
+  let n = 0;
+  SLOT.spin = setInterval(async ()=>{
+    n++;
+    const r = () => SLOT_SYM[Math.floor(Math.random()*7)];
+    const reels = [r(), r(), r()];
+    document.getElementById('slotReels').textContent = reels.join(' ');
+    if(n >= 14){
+      clearInterval(SLOT.spin); SLOT.spin = null;
+      const [a,b,c] = reels;
+      let mult = 0;
+      if(a===b && b===c) mult = a==='💎' ? 30 : a==='7️⃣' ? 20 : 10;
+      else if(a===b || b===c || a===c) mult = 2;
+      if(mult){
+        const win = bet*mult;
+        await loadStats(); STATS[ME].coins += win; await saveStats(); refreshWallet();
+        document.getElementById('slotMsg').textContent = mult>=10 ? `🎉 JACKPOT! +${win} 🙂` : `Winner! +${win} 🙂`;
+        if(mult>=10){ logAct(`hit the slots jackpot (+${win} 🙂)`); sendText(`🎰 JACKPOT baby!! ${reels.join('')} paid ${win} 🙂`); }
+      } else document.getElementById('slotMsg').textContent = 'So close! The pug ate your coins 🐶';
+      document.getElementById('slotBank').textContent = STATS[ME].coins;
+    }
+  }, 90);
+}
+
+/* ================= BLACKJACK ================= */
+let BJ = null;
+function bjDeck(){
+  const d = [];
+  for(const s of ['♠','♥','♦','♣']) for(const r of ['A','2','3','4','5','6','7','8','9','10','J','Q','K']) d.push({r,s});
+  return d.sort(()=>Math.random()-0.5);
+}
+function bjVal(hand){
+  let v = 0, aces = 0;
+  for(const c of hand){
+    if(c.r==='A'){ v+=11; aces++; }
+    else if(['J','Q','K'].includes(c.r)) v+=10;
+    else v+=parseInt(c.r);
+  }
+  while(v>21 && aces>0){ v-=10; aces--; }
+  return v;
+}
+const bjCard = c => `<span style="display:inline-block; background:#fff; border:2.5px solid var(--ink); border-radius:8px; padding:4px 7px; margin:2px; font-weight:900; color:${'♥♦'.includes(c.s)?'#E23B70':'var(--ink)'};">${c.r}${c.s}</span>`;
+async function bjDeal(){
+  const bet = parseInt(document.getElementById('bjBet').value);
+  if(!(await spendCoins(bet))) return;
+  BJ = {deck:bjDeck(), me:[], dealer:[], bet, over:false};
+  BJ.me.push(BJ.deck.pop(), BJ.deck.pop());
+  BJ.dealer.push(BJ.deck.pop(), BJ.deck.pop());
+  if(bjVal(BJ.me)===21){ bjStand(); return; }
+  bjDraw();
+}
+function bjDraw(final){
+  document.getElementById('bjDealer').innerHTML = final
+    ? BJ.dealer.map(bjCard).join('') + ` <b>= ${bjVal(BJ.dealer)}</b>`
+    : bjCard(BJ.dealer[0]) + `<span style="display:inline-block; background:var(--lav); border:2.5px solid var(--ink); border-radius:8px; padding:4px 10px; margin:2px; color:#fff; font-weight:900;">?</span>`;
+  document.getElementById('bjMe').innerHTML = BJ.me.map(bjCard).join('') + ` <b>= ${bjVal(BJ.me)}</b>`;
+  document.getElementById('bjButtons').style.display = BJ.over ? 'none' : 'flex';
+  document.getElementById('bjDealRow').style.display = BJ.over ? 'flex' : 'none';
+}
+function bjHit(){
+  if(!BJ || BJ.over) return;
+  BJ.me.push(BJ.deck.pop());
+  if(bjVal(BJ.me) > 21){ bjEnd('bust'); return; }
+  if(bjVal(BJ.me) === 21){ bjStand(); return; }
+  bjDraw();
+}
+function bjStand(){
+  if(!BJ || BJ.over) return;
+  while(bjVal(BJ.dealer) < 17) BJ.dealer.push(BJ.deck.pop());
+  const me = bjVal(BJ.me), dl = bjVal(BJ.dealer);
+  const natural = BJ.me.length===2 && me===21;
+  if(dl>21 || me>dl) bjEnd(natural?'bj':'win');
+  else if(me===dl) bjEnd('push');
+  else bjEnd('lose');
+}
+async function bjEnd(res){
+  BJ.over = true;
+  let msg = '', pay = 0;
+  if(res==='bj'){ pay = Math.floor(BJ.bet*2.5); msg = `🃏 BLACKJACK! +${pay} 🙂`; }
+  else if(res==='win'){ pay = BJ.bet*2; msg = `You win! +${pay} 🙂`; }
+  else if(res==='push'){ pay = BJ.bet; msg = 'Push — bet returned.'; }
+  else if(res==='bust'){ msg = 'Bust! Over 21 🫠'; }
+  else msg = 'Dealer takes it 🎩';
+  if(pay){ await loadStats(); STATS[ME].coins += pay; await saveStats(); refreshWallet(); }
+  document.getElementById('bjMsg').textContent = msg + `  ·  Bank: ${STATS[ME].coins} 🙂`;
+  if(res==='bj') logAct(`hit BLACKJACK (+${pay} 🙂)`);
+  bjDraw(true);
+}
+function bjOpen(){
+  BJ = null;
+  document.getElementById('bjDealer').innerHTML = '';
+  document.getElementById('bjMe').innerHTML = '';
+  document.getElementById('bjMsg').textContent = 'Beat the dealer. Blackjack pays 2.5×.';
+  document.getElementById('bjButtons').style.display = 'none';
+  document.getElementById('bjDealRow').style.display = 'flex';
+  refreshWallet();
+}
+
+/* ================= BATTLESHIP (two phones) ================= */
+let BS = null, bsTimer = null;
+function bsRandomShips(){
+  const taken = new Set(), ships = [];
+  for(const len of [4,3,3,2]){
+    let done = false;
+    while(!done){
+      const horiz = Math.random()<0.5;
+      const r = Math.floor(Math.random()*(horiz?8:9-len));
+      const c = Math.floor(Math.random()*(horiz?9-len:8));
+      const cells = [];
+      for(let k=0;k<len;k++) cells.push(horiz? r*8+c+k : (r+k)*8+c);
+      if(cells.every(x=>!taken.has(x))){ cells.forEach(x=>taken.add(x)); ships.push(cells); done = true; }
+    }
+  }
+  return ships;
+}
+const bsFlat = p => (BS.players[p].ships||[]).flat();
+async function bsStart(){
+  const g = await sget('mast:bship');
+  if(g && g.phase!=='over' && g.players && g.players[ME]){
+    BS = g;
+    if(!BS.players[ME].ships){ BS.players[ME].ships = bsRandomShips(); await bsSave(); }
+  } else {
+    BS = {seq:1, phase:'place', turn:ME, winner:null, awarded:false,
+      players:{[ME]:{ships:bsRandomShips(), shots:[], ready:false}, [OTHER(ME)]:{ships:null, shots:[], ready:false}}};
+    await sset('mast:bship', BS);
+    toast('New naval war declared! Tell your love to open Battleship ⚓');
+  }
+  clearInterval(bsTimer);
+  bsTimer = setInterval(bsPoll, 3000);
+  bsDraw();
+}
+async function bsSave(){
+  const g = await sget('mast:bship');
+  if(g && g.players){
+    g.players[ME] = BS.players[ME];
+    if(BS.phase==='over' || (g.players.p1.ready && g.players.p2.ready)) g.phase = BS.phase==='over' ? 'over' : 'live';
+    g.turn = BS.turn; g.winner = BS.winner; g.awarded = BS.awarded; g.seq = Math.max(g.seq, BS.seq)+0;
+    BS = g;
+  }
+  BS.seq++;
+  await sset('mast:bship', BS);
+}
+async function bsPoll(){
+  if(!BS) return;
+  const g = await sget('mast:bship');
+  if(g && g.seq > BS.seq){ BS = g; bsDraw(); }
+}
+async function bsShuffle(){ BS.players[ME].ships = bsRandomShips(); bsDraw(); }
+async function bsReady(){
+  BS.players[ME].ready = true;
+  if(BS.players[OTHER(ME)].ready) BS.phase = 'live';
+  await bsSave(); bsDraw();
+}
+async function bsFire(i){
+  if(BS.phase!=='live' || BS.turn!==ME) return;
+  const mine = BS.players[ME];
+  if(mine.shots.includes(i)) return;
+  mine.shots.push(i);
+  const hit = bsFlat(OTHER(ME)).includes(i);
+  if(!hit) BS.turn = OTHER(ME);
+  const oppCells = bsFlat(OTHER(ME));
+  if(oppCells.length && oppCells.every(c=>mine.shots.includes(c))){
+    BS.phase = 'over'; BS.winner = ME;
+    if(!BS.awarded){
+      BS.awarded = true;
+      await addStars(2, ME, 'fleet destroyed');
+      logAct('won Battleship ⚓ (+2 ⭐)');
+      sendText('⚓💥 Your fleet rests at the bottom of the sea. GG, Admiral. (+2 ⭐ to me)');
+    }
+  }
+  await bsSave(); bsDraw();
+  toast(hit ? '💥 HIT! Fire again!' : '🌊 Miss — their turn');
+}
+function bsGrid(cells, tap){
+  return `<div style="display:grid; grid-template-columns:repeat(8,1fr); gap:2px; border:3px solid var(--ink); border-radius:10px; padding:4px; background:#CDE8F5;">`
+    + Array.from({length:64},(_,i)=>`<button style="aspect-ratio:1; border:1.5px solid rgba(51,34,42,.25); border-radius:5px; background:${cells[i].bg}; font-size:13px; padding:0;" ${tap?`onclick="bsFire(${i})"`:''}>${cells[i].t}</button>`).join('') + '</div>';
+}
+function bsDraw(){
+  const el = document.getElementById('bsBody');
+  if(!BS){ el.innerHTML=''; return; }
+  const me = BS.players[ME], opp = BS.players[OTHER(ME)];
+  const oppName = STATS ? esc(STATS[OTHER(ME)].name) : 'them';
+  if(BS.phase==='place'){
+    const myCells = Array.from({length:64},(_,i)=>({t: bsFlat(ME).includes(i)?'🚢':'', bg:'#EAF6FD'}));
+    el.innerHTML = `<div class="statusbar">${me.ready? `⚓ Fleet locked — waiting on ${oppName}…` : 'Place your fleet (4·3·3·2)'}</div>
+      ${bsGrid(myCells,false)}
+      ${!me.ready? `<div class="chessbtns" style="margin-top:10px;">
+        <button class="btn small gold" onclick="bsShuffle()">🔀 Shuffle</button>
+        <button class="btn small teal" onclick="bsReady()">⚓ Lock it in</button></div>`:''}`;
+    return;
+  }
+  const theirCells = Array.from({length:64},(_,i)=>{
+    if(me.shots.includes(i)) return bsFlat(OTHER(ME)).includes(i)? {t:'💥',bg:'#FFD1DE'} : {t:'🌊',bg:'#DFF1FA'};
+    return {t:'', bg:'#EAF6FD'};
+  });
+  const myCells = Array.from({length:64},(_,i)=>{
+    const ship = bsFlat(ME).includes(i), shot = opp.shots.includes(i);
+    if(ship && shot) return {t:'💥', bg:'#FFD1DE'};
+    if(ship) return {t:'🚢', bg:'#EAF6FD'};
+    if(shot) return {t:'·', bg:'#F2F8FB'};
+    return {t:'', bg:'#EAF6FD'};
+  });
+  const status = BS.phase==='over'
+    ? (BS.winner===ME ? '🏆 VICTORY! Their fleet is toast! +2 ⭐' : `💀 Your fleet is sunk. ${oppName} wins.`)
+    : (BS.turn===ME ? '🎯 Your shot — tap their waters!' : `⏳ ${oppName} is aiming…`);
+  el.innerHTML = `<div class="statusbar">${status}</div>
+    <div style="font-weight:900; font-size:13px; margin:6px 2px;">🎯 Their waters</div>
+    ${bsGrid(theirCells, BS.phase==='live' && BS.turn===ME)}
+    <div style="font-weight:900; font-size:13px; margin:10px 2px 6px;">🚢 Your fleet</div>
+    ${bsGrid(myCells,false)}
+    ${BS.phase==='over'? `<button class="btn pink block" onclick="sset('mast:bship',null).then(bsStart)">⚓ Rematch</button>`:''}`;
+}
+
+/* ================= PUP CRUSH (match-3) ================= */
+const CR_SYM = ['🐶','🦴','❤️','🍖','🎾','⭐'];
+let CR = null;
+function crMatches(g){
+  const out = new Set();
+  for(let r=0;r<8;r++) for(let c=0;c<6;c++){
+    const i=r*8+c;
+    if(g[i] && g[i]===g[i+1] && g[i]===g[i+2]){ out.add(i); out.add(i+1); out.add(i+2); }
+  }
+  for(let c=0;c<8;c++) for(let r=0;r<6;r++){
+    const i=r*8+c;
+    if(g[i] && g[i]===g[i+8] && g[i]===g[i+16]){ out.add(i); out.add(i+8); out.add(i+16); }
+  }
+  return out;
+}
+function crushNew(){
+  const g = new Array(64);
+  for(let i=0;i<64;i++){
+    do{ g[i] = CR_SYM[Math.floor(Math.random()*6)]; } while(crMatches(g.slice(0,i+1).concat(new Array(63-i))).size);
+  }
+  CR = {g, sel:null, moves:20, score:0, busy:false, over:false};
+  crDraw();
+}
+function crDraw(){
+  document.getElementById('crStats').innerHTML = `<span>Moves: <b>${CR.moves}</b></span><span>Score: <b>${CR.score}</b></span><span>Best: <b>${STATS?.[ME]?.best?.crush ?? '–'}</b></span>`;
+  document.getElementById('crGrid').innerHTML = CR.g.map((s,i)=>
+    `<button style="aspect-ratio:1; font-size:20px; padding:0; border:2px solid var(--ink); border-radius:8px; background:${CR.sel===i?'var(--gold)':'#fff'}; ${s?'':'opacity:0;'}" onclick="crTap(${i})">${s||''}</button>`).join('');
+}
+async function crTap(i){
+  if(!CR || CR.busy || CR.over) return;
+  if(CR.sel===null){ CR.sel = i; crDraw(); return; }
+  const a = CR.sel, b = i;
+  CR.sel = null;
+  const adj = (Math.abs(a-b)===1 && Math.floor(a/8)===Math.floor(b/8)) || Math.abs(a-b)===8;
+  if(!adj){ CR.sel = i; crDraw(); return; }
+  [CR.g[a],CR.g[b]] = [CR.g[b],CR.g[a]];
+  if(!crMatches(CR.g).size){ [CR.g[a],CR.g[b]] = [CR.g[b],CR.g[a]]; crDraw(); toast('No match there'); return; }
+  CR.moves--; CR.busy = true;
+  let cascade = 0;
+  const step = () => {
+    const m = crMatches(CR.g);
+    if(m.size){
+      cascade++;
+      CR.score += m.size * 10 * cascade;
+      m.forEach(x=>CR.g[x]=null);
+      crDraw();
+      setTimeout(()=>{
+        for(let c=0;c<8;c++){
+          const col = [];
+          for(let r=7;r>=0;r--) if(CR.g[r*8+c]) col.push(CR.g[r*8+c]);
+          for(let r=7;r>=0;r--) CR.g[r*8+c] = col[7-r] || CR_SYM[Math.floor(Math.random()*6)];
+        }
+        crDraw();
+        setTimeout(step, 180);
+      }, 200);
+    } else {
+      CR.busy = false; crDraw();
+      if(CR.moves<=0) crEnd();
+    }
+  };
+  step();
+}
+async function crEnd(){
+  CR.over = true;
+  const rec = await setBest('crush', CR.score, false);
+  const coins = Math.floor(CR.score/150);
+  if(coins>0) await addCoins(coins, rec?'crush record!':'Pup Crush');
+  document.getElementById('crStats').innerHTML = `<span><b>Final: ${CR.score}</b></span><span><button class="btn small pink" onclick="crushNew()">▶ Again</button></span>`;
+}
+
+/* ================= MAHJONG GARDEN ================= */
+let MJ = null;
+function mjNew(){
+  const syms = ['🌸','🍀','🌙','☀️','🐉','🎋','🏮','🍵','⛩️','🐼','🌊','🗻','🦢','🍁','💮','🀄'];
+  const deck = [];
+  syms.forEach(s=>{ deck.push(s,s); });
+  deck.sort(()=>Math.random()-0.5);
+  MJ = {g:deck, sel:null, shuffles:2, done:0};
+  mjDraw();
+}
+function mjFree(i){
+  if(!MJ.g[i]) return false;
+  const r = Math.floor(i/8), row = MJ.g.slice(r*8, r*8+8);
+  const c = i%8;
+  let left = true, right = true;
+  for(let k=0;k<c;k++) if(row[k]) left = false;
+  for(let k=c+1;k<8;k++) if(row[k]) right = false;
+  return left || right;
+}
+function mjHasMoves(){
+  const free = [];
+  for(let i=0;i<32;i++) if(mjFree(i)) free.push(i);
+  for(let a=0;a<free.length;a++) for(let b=a+1;b<free.length;b++)
+    if(MJ.g[free[a]]===MJ.g[free[b]]) return true;
+  return false;
+}
+function mjDraw(){
+  document.getElementById('mjStats').innerHTML = `<span>Pairs left: <b>${(32-MJ.done)/2}</b></span><span>Shuffles: <b>${MJ.shuffles}</b></span>`;
+  document.getElementById('mjGrid').innerHTML = MJ.g.map((s,i)=>{
+    const free = mjFree(i);
+    return `<button style="aspect-ratio:1; font-size:19px; padding:0; border:2.5px solid var(--ink); border-radius:8px;
+      background:${MJ.sel===i?'var(--gold)':free?'#fff':'#E8DCC8'}; ${s?'':'visibility:hidden;'} ${free?'':'opacity:.55;'}"
+      onclick="mjTap(${i})">${s||''}</button>`;
+  }).join('');
+  if(!mjHasMoves() && MJ.done<32){
+    if(MJ.shuffles>0) document.getElementById('mjStats').innerHTML += `<span><button class="btn small gold" onclick="mjShuffle()">🔀 Stuck — shuffle</button></span>`;
+    else document.getElementById('mjStats').innerHTML = `<span><b>Out of moves!</b></span><span><button class="btn small pink" onclick="mjNew()">▶ New garden</button></span>`;
+  }
+}
+function mjShuffle(){
+  const remaining = MJ.g.filter(Boolean).sort(()=>Math.random()-0.5);
+  let k = 0;
+  MJ.g = MJ.g.map(s=>s? remaining[k++] : null);
+  MJ.shuffles--; MJ.sel = null; mjDraw();
+}
+async function mjTap(i){
+  if(!MJ.g[i] || !mjFree(i)){ toast('That tile is blocked — clear from the edges'); return; }
+  if(MJ.sel===null){ MJ.sel = i; mjDraw(); return; }
+  if(MJ.sel===i){ MJ.sel = null; mjDraw(); return; }
+  if(MJ.g[MJ.sel]===MJ.g[i]){
+    MJ.g[MJ.sel] = null; MJ.g[i] = null; MJ.sel = null; MJ.done += 2;
+    mjDraw();
+    if(MJ.done>=32){
+      await addCoins(8, 'garden cleared');
+      document.getElementById('mjStats').innerHTML = `<span><b>🌸 Garden cleared! +8 🙂</b></span><span><button class="btn small pink" onclick="mjNew()">▶ Again</button></span>`;
+    }
+  } else { MJ.sel = i; mjDraw(); }
+}
+
+/* ================= WORD DUEL (daily) ================= */
+const SCRAB = {A:1,B:3,C:3,D:2,E:1,F:4,G:2,H:4,I:1,J:8,K:5,L:1,M:3,N:1,O:1,P:3,Q:10,R:1,S:1,T:1,U:1,V:4,W:4,X:8,Y:4,Z:10};
+function seededRand(seed){ return function(){ seed|=0; seed = seed+0x6D2B79F5|0; let t = Math.imul(seed^seed>>>15, 1|seed); t = t+Math.imul(t^t>>>7, 61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function duelLetters(){
+  const rnd = seededRand(dayIndex()*7919);
+  const V = 'AEIOU', C = 'BCDFGHKLMNPRSTWY';
+  const out = [];
+  for(let i=0;i<3;i++) out.push(V[Math.floor(rnd()*5)]);
+  for(let i=0;i<5;i++) out.push(C[Math.floor(rnd()*C.length)]);
+  return out.sort(()=>rnd()-0.5);
+}
+let DUEL = null;
+async function duelOpen(){
+  DUEL = (await sget('mast:duel')) || null;
+  if(!DUEL || DUEL.day !== dayIndex()) DUEL = {day:dayIndex(), p1:null, p2:null, awarded:false};
+  duelDraw();
+}
+function duelScore(w){ return w.split('').reduce((s,c)=>s+(SCRAB[c]||0), 0); }
+async function duelSubmit(){
+  const w = document.getElementById('duelWord').value.trim().toUpperCase();
+  if(w.length<2){ toast('At least 2 letters'); return; }
+  const pool = duelLetters();
+  for(const ch of w){
+    const k = pool.indexOf(ch);
+    if(k===-1){ toast(`No "${ch}" available (letters can be used once)`); return; }
+    pool.splice(k,1);
+  }
+  document.getElementById('duelBtn').textContent = 'Checking word…';
+  let real = true;
+  try{
+    const r = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(w.toLowerCase()));
+    real = r.ok;
+  }catch(e){ /* offline: allow */ }
+  document.getElementById('duelBtn').textContent = 'Lock it in 🔒';
+  if(!real){ toast(`"${w}" isn’t in the dictionary — nice try 😏`); return; }
+  DUEL[ME] = {w, s:duelScore(w), ts:Date.now()};
+  if(DUEL.p1 && DUEL.p2 && !DUEL.awarded){
+    DUEL.awarded = true;
+    await sset('mast:duel', DUEL);
+    const win = DUEL.p1.s===DUEL.p2.s ? null : (DUEL.p1.s>DUEL.p2.s ? 'p1' : 'p2');
+    if(win){
+      await loadStats(); STATS[win].coins += 3; await saveStats(); refreshWallet();
+      logAct(`won today’s Word Duel with "${DUEL[win].w}" (+3 🙂)`);
+      sendText(`⚔️ Word Duel result: "${DUEL.p1.w}" (${DUEL.p1.s}) vs "${DUEL.p2.w}" (${DUEL.p2.s}) — ${STATS[win].name} takes it!`);
+    } else sendText(`⚔️ Word Duel: dead tie at ${DUEL.p1.s}! Rematch at midnight.`);
+  } else await sset('mast:duel', DUEL);
+  duelDraw();
+}
+function duelDraw(){
+  const letters = duelLetters();
+  const el = document.getElementById('duelBody');
+  const tile = c => `<span style="display:inline-block; background:#fff; border:2.5px solid var(--ink); border-radius:8px; padding:8px 10px; margin:2px; font-weight:900; font-size:18px;">${c}<sub style="font-size:9px;">${SCRAB[c]}</sub></span>`;
+  const mine = DUEL[ME], theirs = DUEL[OTHER(ME)];
+  let body = `<div class="card center"><b>Today’s letters — same on both phones</b><div style="margin-top:8px;">${letters.map(tile).join('')}</div>
+    <div style="font-size:12px; opacity:.65; font-weight:700; margin-top:6px;">One word, best score wins +3 🙂. Each letter usable once. New letters at midnight.</div></div>`;
+  if(!mine){
+    body += `<div class="card"><div class="sendrow"><input type="text" id="duelWord" placeholder="Your best word…" maxlength="8" style="text-transform:uppercase;"><button class="btn pink" id="duelBtn" onclick="duelSubmit()">Lock it in 🔒</button></div></div>`;
+  } else if(!theirs){
+    body += `<div class="card center"><div style="font-size:36px;">🔒</div><b>Your word is sealed (${mine.s} pts)</b><div style="font-weight:700; opacity:.7;">Waiting on ${STATS?esc(STATS[OTHER(ME)].name):'them'}…</div>
+      <button class="btn small pink" style="margin-top:8px;" onclick="sendText('⚔️ My Word Duel entry is locked. Your move, wordsmith.'); toast('Taunt sent')">😏 Taunt them</button></div>`;
+  } else {
+    const win = DUEL.p1.s===DUEL.p2.s ? null : (DUEL.p1.s>DUEL.p2.s ? 'p1':'p2');
+    body += `<div class="card center"><b>⚔️ Duel resolved!</b>
+      <div class="statline"><span>${AV.p1} ${esc(STATS.p1.name)}</span><b>"${esc(DUEL.p1.w)}" · ${DUEL.p1.s} pts ${win==='p1'?'👑':''}</b></div>
+      <div class="statline"><span>${AV.p2} ${esc(STATS.p2.name)}</span><b>"${esc(DUEL.p2.w)}" · ${DUEL.p2.s} pts ${win==='p2'?'👑':''}</b></div>
+      <div style="font-weight:800; margin-top:6px;">${win? esc(STATS[win].name)+' +3 🙂' : 'A perfect tie!'}</div>
+      <div style="font-size:12px; opacity:.6; font-weight:700;">Fresh letters at midnight ⚔️</div></div>`;
+  }
+  el.innerHTML = body;
+}
+
+/* ================= PETS ================= */
+let PETS = [];
+async function petsLoad(){ PETS = (await sget('mast:pets')) || []; petsDraw(); }
+async function petsSave(){ await sset('mast:pets', PETS); }
+async function petAdd(){
+  const n = document.getElementById('petName').value.trim(); if(!n) return;
+  PETS.push({id:uid(), n, sp:document.getElementById('petSp').value, bday:document.getElementById('petBday').value||'', meds:[], note:''});
+  document.getElementById('petName').value='';
+  await petsSave(); petsDraw();
+  logAct(`added ${n} to the family 🐾`);
+}
+async function petDel(id){ if(!armDel('pt'+id)){ petsDraw(); return; } PETS = PETS.filter(p=>p.id!==id); await petsSave(); petsDraw(); }
+async function petMedAdd(pid){
+  const inp = document.getElementById('pmed-'+pid);
+  const n = inp.value.trim(); if(!n) return;
+  const p = PETS.find(p=>p.id===pid);
+  p.meds.push({id:uid(), n, lastTaken:''});
+  inp.value=''; await petsSave(); petsDraw();
+}
+async function petMedTake(pid, mid){
+  const p = PETS.find(p=>p.id===pid);
+  const m = p.meds.find(m=>m.id===mid);
+  m.lastTaken = m.lastTaken===todayStr() ? '' : todayStr();
+  await petsSave(); petsDraw();
+}
+async function petMedDel(pid, mid){
+  if(!armDel('pm'+mid)){ petsDraw(); return; }
+  const p = PETS.find(p=>p.id===pid);
+  p.meds = p.meds.filter(m=>m.id!==mid);
+  await petsSave(); petsDraw();
+}
+function petVet(id){
+  const p = PETS.find(p=>p.id===id);
+  nav('cal').then(()=>{
+    document.getElementById('calTitle').value = `${p.sp} ${p.n} — vet`;
+    document.getElementById('calType').value = '🐾';
+    toast('Pick the date & time, then add it 📅');
+  });
+}
+function petsDraw(){
+  const t = todayStr();
+  document.getElementById('petList').innerHTML = PETS.map(p=>{
+    const b = p.bday ? nextBday(p.bday) : null;
+    return `<div class="card" ${b && b.days<=7 ? 'style="background:#FFF3D6;"' : ''}>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:28px;">${p.sp}</span>
+        <b style="flex:1; font-size:17px;">${esc(p.n)}</b>
+        ${b? `<span class="chip" style="box-shadow:none; padding:3px 10px; font-size:12px;">🎂 ${b.days===0?'TODAY!':b.days+'d'}</span>`:''}
+        <button class="btn small" onclick="petDel('${p.id}')">✕</button>
+      </div>
+      ${p.meds.map(m=>{
+        const taken = m.lastTaken===t;
+        return `<div class="statline"><span>💊 ${esc(m.n)}</span><span style="white-space:nowrap;">
+          <button class="btn small ${taken?'teal':''}" style="padding:3px 9px;" onclick="petMedTake('${p.id}','${m.id}')">${taken?'✓ today':'○ today?'}</button>
+          <button class="btn small" style="padding:3px 8px;" onclick="petMedDel('${p.id}','${m.id}')">✕</button></span></div>`;
+      }).join('')}
+      <div class="sendrow"><input type="text" id="pmed-${p.id}" placeholder="Add med / flea / heartworm…" maxlength="30"><button class="btn small pink" onclick="petMedAdd('${p.id}')">＋</button></div>
+      <button class="btn small gold block" style="margin-bottom:0;" onclick="petVet('${p.id}')">🩺 Schedule a vet visit</button>
+    </div>`;
+  }).join('') || '<div class="center" style="opacity:.5; font-weight:700; padding:20px 0;">Add the real bosses of the household.</div>';
 }
 
 </script>
