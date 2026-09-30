@@ -478,6 +478,10 @@ input[type=range]{accent-color:var(--pink); height:30px;}
       <span class="ico" style="font-size:34px;">🏡</span>
       <span>Run the House<div class="sub">calendar · groceries · money · garage · home care +7 more</div></span>
     </button>
+    <button class="gcard wide" style="background:#FFF3D6;" onclick="nav('wing-family')">
+      <span class="ico" style="font-size:34px;">👨‍👩‍👧</span>
+      <span>Family<div class="sub">kids · family tree · pets · birthdays</div></span>
+    </button>
     <button class="gcard wide" style="background:#FFF0D4;" onclick="nav('wing-learn')">
       <span class="ico" style="font-size:34px;">🌱</span>
       <span>Learn &amp; Grow<div class="sub">travel · fitness · words · communication · life skills</div></span>
@@ -600,6 +604,12 @@ input[type=range]{accent-color:var(--pink); height:30px;}
 <!-- ============ DECISION LOG ============ -->
 <div class="screen" id="scr-decide">
   <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>🗳️ Decision Log</h2></div>
+  <div class="card center" style="background:#EAE6FB;">
+    <b>🔮 The Oracle</b>
+    <div style="font-size:12px; font-weight:700; opacity:.7;">Can’t decide? Yes-or-no question, instant verdict, zero liability.</div>
+    <div style="font-size:20px; font-weight:900; min-height:28px; margin:8px 0;" id="oracleOut">Ask and tap.</div>
+    <button class="btn lav" onclick="oracleAsk()">🔮 Consult the Oracle</button>
+  </div>
   <div class="card">
     <b>Log a decision</b>
     <div style="display:grid; gap:8px; margin-top:8px;">
@@ -781,6 +791,31 @@ input[type=range]{accent-color:var(--pink); height:30px;}
   <div id="howtoBody"></div>
 </div>
 
+<!-- ============ KIDS ============ -->
+<div class="screen" id="scr-kids">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>🧒 The Kids</h2></div>
+  <div id="kidsBody"></div>
+</div>
+
+<!-- ============ FAMILY TREE ============ -->
+<div class="screen" id="scr-fam">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>🌳 Family Tree</h2></div>
+  <div id="famBody"></div>
+</div>
+
+<!-- ============ COUNSELOR ============ -->
+<div class="screen" id="scr-counsel">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>🛋️ The Counselor</h2></div>
+  <div class="tabs" id="counselTabs"></div>
+  <div id="counselBody"></div>
+</div>
+
+<!-- ============ PARTNER PROFILES ============ -->
+<div class="screen" id="scr-profile">
+  <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2>🪞 Partner Profiles</h2></div>
+  <div id="profBody"></div>
+</div>
+
 <!-- ============ WING HUB ============ -->
 <div class="screen" id="scr-wing">
   <div class="topbar"><button class="back" onclick="nav('hq')">←</button><h2 id="wingTitle">Wing</h2></div>
@@ -930,6 +965,10 @@ async function nav(id){
   if(id === 'pets'){ petsLoad(); }
   if(id === 'activity'){ actOpen(); }
   if(id === 'mentor'){ mentorTab('mine'); }
+  if(id === 'kids'){ kidsDraw(); }
+  if(id === 'fam'){ famDraw(); }
+  if(id === 'counsel'){ counselTab('persp'); }
+  if(id === 'profile'){ profDraw(); }
   if(id === 'health'){ await hlLoad(); healthTab('w'); }
   if(id === 'howto'){ document.getElementById('howtoBody').innerHTML = HOWTO.map(([t,b])=>`<div class="lovecard"><h4>${t}</h4>${b}</div>`).join(''); }
   if(id === 'remind'){ rmLoad(); }
@@ -2757,6 +2796,7 @@ function libTab(key){
     else if(key==='vlog') vlogDraw();
     else if(key==='ice') iceDraw();
     else if(key==='calc') kcalcDraw();
+    else if(key==='trips') tripsDraw();
     return;
   }
   body.innerHTML = tab[2].map(([t,b])=>card(t,b)).join('');
@@ -3792,8 +3832,7 @@ const WINGS = {
   ['lib-garage','#E0F5F1','🚗','The Garage','service log · repairs'],
   ['money','#EAE6FB','💵','Money','bills · spending'],
   ['lib-med','#FFE3EC','🚑','Medical & Safety','first aid · ICE'],
-  ['remind','#FFF0D4','🔔','Reminders','nudge each other'],
-  ['pets','#E0F5F1','🐾','The Pets','meds · vet · birthdays']
+  ['remind','#FFF0D4','🔔','Reminders','nudge each other']
  ]},
  learn:{title:'🌱 Learn & Grow', tiles:[
   ['lib-travel','#E0F5F1','✈️','Travel HQ','bucket list · deals'],
@@ -4710,6 +4749,774 @@ const HOWTO = [
   const i = LIB.food.tabs.findIndex(t=>t[0]==='calc');
   if(i>0) LIB.food.tabs.unshift(LIB.food.tabs.splice(i,1)[0]);
 })();
+
+/* ================= V9 — FAMILY UPDATE ================= */
+
+/* ---- TRIPS ---- */
+LIB.travel.tabs.unshift(['trips','🧳 Trips','custom']);
+const LEG_KINDS = [['✈️','Flight'],['🏨','Hotel'],['🚗','Rental'],['📍','Plan'],['📞','Contact'],['📝','Note']];
+let TRIPS = [], TRIPSEL = null;
+async function tripsLoad(){ TRIPS = (await sget('mast:trips')) || []; }
+async function tripsSave(){ await sset('mast:trips', TRIPS); }
+function tripStatus(t){
+  const today = todayStr();
+  if(t.end && t.end < today) return ['past','#EAE6FB','🏁 Done'];
+  if(t.start && t.start <= today && (!t.end || t.end >= today)) return ['active','#E0F5F1','🟢 Happening now'];
+  return ['up','#FFF0D4', t.start? '🗓️ In '+daysUntil(t.start)+'d' : '🗓️ Upcoming'];
+}
+async function tripAdd(){
+  const n = document.getElementById('tripName').value.trim(); if(!n){ toast('Name the trip'); return; }
+  TRIPS.unshift({id:uid(), n, start:document.getElementById('tripStart').value||'', end:document.getElementById('tripEnd').value||'', legs:[], arrived:{}});
+  await tripsSave();
+  logAct(`planned a trip: ${n} ✈️`);
+  document.getElementById('tripName').value='';
+  tripsDraw();
+}
+async function tripDel(id){
+  if(!armDel('tr'+id)){ tripsDraw(); return; }
+  TRIPS = TRIPS.filter(t=>t.id!==id); TRIPSEL = null; await tripsSave(); tripsDraw();
+}
+async function tripArrived(id){
+  const t = TRIPS.find(t=>t.id===id);
+  t.arrived[ME] = Date.now();
+  await tripsSave();
+  logAct(`arrived safely: ${t.n} 🛬`);
+  sendText(`🛬💚 Arrived safe at ${t.n}! No need to text — the app’s got you. Love you!`);
+  toast('Arrival announced 💚');
+  tripsDraw();
+}
+async function legAdd(tid){
+  const t = TRIPS.find(t=>t.id===tid);
+  const title = document.getElementById('legTitle').value.trim(); if(!title){ toast('What is it?'); return; }
+  t.legs.push({id:uid(), k:document.getElementById('legKind').value, title,
+    date:document.getElementById('legDate').value||'', time:document.getElementById('legTime').value||'',
+    conf:document.getElementById('legConf').value.trim()});
+  await tripsSave();
+  document.getElementById('legTitle').value=''; document.getElementById('legConf').value='';
+  tripsDraw();
+}
+async function legDel(tid, lid){
+  if(!armDel('lg'+lid)){ tripsDraw(); return; }
+  const t = TRIPS.find(t=>t.id===tid);
+  t.legs = t.legs.filter(l=>l.id!==lid);
+  await tripsSave(); tripsDraw();
+}
+async function legToCal(tid, lid){
+  const t = TRIPS.find(t=>t.id===tid), l = t.legs.find(l=>l.id===lid);
+  if(!l.date){ toast('Give it a date first'); return; }
+  const cal = (await sget('mast:cal')) || [];
+  cal.push({id:uid(), title:`${t.n}: ${l.title}`, date:l.date, time:l.time||'', type:l.k, who:'both'});
+  await sset('mast:cal', cal);
+  toast('On the shared calendar 📅');
+}
+async function tripsDraw(){
+  await tripsLoad();
+  const el = document.getElementById('libBody');
+  if(TRIPSEL){
+    const t = TRIPS.find(x=>x.id===TRIPSEL);
+    if(!t){ TRIPSEL = null; tripsDraw(); return; }
+    const st = tripStatus(t);
+    const legs = [...t.legs].sort((a,b)=>((a.date||'9999')+(a.time||'')).localeCompare((b.date||'9999')+(b.time||'')));
+    let lastDate = null, legHtml = '';
+    for(const l of legs){
+      if(l.date !== lastDate){ lastDate = l.date; legHtml += `<div style="font-weight:900; font-size:12px; opacity:.6; margin:8px 2px 2px;">${l.date? fmtD(l.date):'📌 Anytime'}</div>`; }
+      legHtml += `<div class="card" style="padding:8px 12px; margin:4px 0; display:flex; align-items:center; gap:8px;">
+        <span style="font-size:20px;">${l.k}</span>
+        <div style="flex:1;"><b style="font-size:14px;">${esc(l.title)}</b>
+          <div style="font-size:12px; font-weight:700; opacity:.7;">${l.time||''}${l.conf? (l.time?' · ':'')+'#'+esc(l.conf):''}</div></div>
+        <button class="btn small" style="padding:3px 8px;" onclick="legToCal('${t.id}','${l.id}')">📅</button>
+        <button class="btn small" style="padding:3px 8px;" onclick="legDel('${t.id}','${l.id}')">✕</button>
+      </div>`;
+    }
+    const arrivedMe = t.arrived[ME], arrivedThem = t.arrived[OTHER(ME)];
+    el.innerHTML = `
+      <button class="btn small" onclick="TRIPSEL=null; tripsDraw()">← All trips</button>
+      <div class="card" style="background:${st[1]};">
+        <b style="font-size:18px;">🧳 ${esc(t.n)}</b>
+        <div style="font-size:13px; font-weight:800; opacity:.75;">${t.start? fmtD(t.start):'?'} → ${t.end? fmtD(t.end):'?'} · ${st[2]}</div>
+        ${arrivedMe? `<div class="statline"><span>${AV[ME]} arrived</span><b>✅ ${new Date(arrivedMe).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</b></div>`:''}
+        ${arrivedThem? `<div class="statline"><span>${AV[OTHER(ME)]} arrived</span><b>✅ ${new Date(arrivedThem).toLocaleString(undefined,{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'})}</b></div>`:''}
+        ${!arrivedMe && st[0]!=='past' ? `<button class="btn pink block" style="margin-bottom:0;" onclick="tripArrived('${t.id}')">🛬 I’ve arrived safely — tell my love</button>`:''}
+      </div>
+      <div class="card"><b>Add to the itinerary</b>
+        <div style="display:grid; gap:8px; margin-top:8px;">
+          <div style="display:flex; gap:8px;">
+            <select id="legKind" class="dtin" style="max-width:110px;">${LEG_KINDS.map(([e,l])=>`<option value="${e}">${e} ${l}</option>`).join('')}</select>
+            <input type="text" id="legTitle" placeholder="Flight AC123 · Hilton · Aquarium…" maxlength="50" style="flex:1;">
+          </div>
+          <div style="display:flex; gap:8px;"><input type="date" id="legDate" class="dtin"><input type="time" id="legTime" class="dtin"><input type="text" id="legConf" placeholder="Conf# / phone" maxlength="24" class="dtin"></div>
+          <button class="btn teal" onclick="legAdd('${t.id}')">Add</button>
+        </div></div>
+      ${legHtml || '<div class="center" style="opacity:.5; font-weight:700; padding:12px 0;">Empty itinerary — add the flight first, everything else follows.</div>'}
+      <button class="btn small block" onclick="tripDel('${t.id}')">🗑️ Delete this trip</button>`;
+    return;
+  }
+  el.innerHTML = `<div class="card"><b>Plan a trip</b>
+      <div style="display:grid; gap:8px; margin-top:8px;">
+        <input type="text" id="tripName" placeholder="e.g. Kate → Calgary · Family beach week" maxlength="40">
+        <div style="display:flex; gap:8px;"><input type="date" id="tripStart" class="dtin"><input type="date" id="tripEnd" class="dtin"></div>
+        <button class="btn teal" onclick="tripAdd()">🧳 Create trip</button>
+      </div>
+      <div style="font-size:12px; font-weight:700; opacity:.6; margin-top:6px;">Track as many at once as life throws at you — solo work trips, family vacations, road trips. Each holds flights, hotels, rentals, plans and contacts, plus a one-tap “arrived safely” for whoever’s traveling.</div>
+    </div>` +
+    (TRIPS.map(t=>{
+      const st = tripStatus(t);
+      return `<button class="card" style="width:100%; text-align:left; padding:12px; background:${st[1]}; display:flex; align-items:center; gap:10px;" onclick="TRIPSEL='${t.id}'; tripsDraw()">
+        <span style="font-size:24px;">🧳</span>
+        <span style="flex:1;"><b>${esc(t.n)}</b><div style="font-size:12px; font-weight:800; opacity:.7;">${t.start? fmtD(t.start):'?'} → ${t.end? fmtD(t.end):'?'} · ${t.legs.length} items</div></span>
+        <b style="font-size:12px;">${st[2]}</b>
+      </button>`;
+    }).join('') || '<div class="center" style="opacity:.5; font-weight:700; padding:14px 0;">No trips yet. The world is large and the app is ready.</div>');
+}
+
+/* ---- KIDS ---- */
+let KIDS = [], KIDSEL = null;
+async function kidsLoad(){ KIDS = (await sget('mast:kids')) || []; }
+async function kidsSave(){ await sset('mast:kids', KIDS); }
+async function kidAdd(){
+  const n = document.getElementById('kidName').value.trim(); if(!n) return;
+  KIDS.push({id:uid(), n, bday:document.getElementById('kidBday').value||'', med:'', sizes:'', growth:[], miles:[], acts:[], evts:[], chores:[]});
+  await kidsSave();
+  logAct(`added ${n} to the family 👶`);
+  document.getElementById('kidName').value='';
+  kidsDraw();
+}
+async function kidDel(id){
+  if(!armDel('kd'+id)){ kidsDraw(); return; }
+  KIDS = KIDS.filter(k=>k.id!==id); KIDSEL = null; await kidsSave(); kidsDraw();
+}
+async function kidField(id, f, v){ const k = KIDS.find(k=>k.id===id); k[f] = v; await kidsSave(); }
+function kidAge(bday){
+  if(!bday) return '';
+  const b = new Date(bday+'T12:00:00'), n = new Date();
+  let a = n.getFullYear()-b.getFullYear();
+  if(n < new Date(n.getFullYear(), b.getMonth(), b.getDate())) a--;
+  return a;
+}
+async function kidGrow(id){
+  const h = document.getElementById('kg-'+id).value.trim(); if(!h) return;
+  const k = KIDS.find(k=>k.id===id);
+  k.growth.push({d:todayStr(), h});
+  await kidsSave();
+  logAct(`measured ${k.n}: ${h} 📏`);
+  kidsDraw();
+}
+async function kidGrowRemind(id){
+  const k = KIDS.find(k=>k.id===id);
+  const d = new Date(); d.setFullYear(d.getFullYear()+1);
+  const cal = (await sget('mast:cal')) || [];
+  cal.push({id:uid(), title:`📏 Measure ${k.n} (yearly)`, date:d.toISOString().slice(0,10), time:'', type:'🧒', who:'both'});
+  await sset('mast:cal', cal);
+  toast('Yearly measuring day on the calendar 📏');
+}
+async function kidMile(id){
+  const t = document.getElementById('km-'+id).value.trim(); if(!t) return;
+  const k = KIDS.find(k=>k.id===id);
+  k.miles.unshift({d:todayStr(), t});
+  await kidsSave();
+  logAct(`milestone for ${k.n}: ${t} ⭐`);
+  document.getElementById('km-'+id).value='';
+  kidsDraw();
+}
+async function kidMileDel(id, i){
+  const k = KIDS.find(k=>k.id===id);
+  k.miles.splice(i,1); await kidsSave(); kidsDraw();
+}
+async function kidActAdd(id){
+  const k = KIDS.find(k=>k.id===id);
+  const n = document.getElementById('ka-n').value.trim(); if(!n){ toast('Activity name?'); return; }
+  k.acts.push({id:uid(), n, place:document.getElementById('ka-p').value.trim(), coach:document.getElementById('ka-c').value.trim(), phone:document.getElementById('ka-ph').value.trim(), sched:document.getElementById('ka-s').value.trim()});
+  await kidsSave();
+  ['ka-n','ka-p','ka-c','ka-ph','ka-s'].forEach(i=>document.getElementById(i).value='');
+  kidsDraw();
+}
+async function kidActDel(id, aid){
+  if(!armDel('ka'+aid)){ kidsDraw(); return; }
+  const k = KIDS.find(k=>k.id===id);
+  k.acts = k.acts.filter(a=>a.id!==aid);
+  await kidsSave(); kidsDraw();
+}
+function kidActCal(id, aid){
+  const k = KIDS.find(k=>k.id===id), a = k.acts.find(a=>a.id===aid);
+  nav('cal').then(()=>{
+    document.getElementById('calTitle').value = `${k.n}: ${a.n}${a.place? ' @ '+a.place : ''}`;
+    document.getElementById('calType').value = '🧒';
+    toast('Pick date & time, then add 📅');
+  });
+}
+async function kidEvtAdd(id){
+  const k = KIDS.find(k=>k.id===id);
+  const title = document.getElementById('ke-t').value.trim();
+  const date = document.getElementById('ke-d').value;
+  if(!title || !date){ toast('Needs a what and a when'); return; }
+  const e = {id:uid(), kind:document.getElementById('ke-k').value, title, date, time:document.getElementById('ke-tm').value||'',
+    addr:document.getElementById('ke-a').value.trim(), phone:document.getElementById('ke-p').value.trim(),
+    pickup:document.getElementById('ke-pu').value.trim(), bring:document.getElementById('ke-b').value.trim()};
+  k.evts.push(e);
+  const cal = (await sget('mast:cal')) || [];
+  cal.push({id:uid(), title:`${e.kind} ${k.n}: ${title}`, date, time:e.time, type:'🧒', who:'un'});
+  await sset('mast:cal', cal);
+  await kidsSave();
+  logAct(`added for ${k.n}: ${title} (${fmtD(date)})`);
+  ['ke-t','ke-a','ke-p','ke-pu','ke-b'].forEach(i=>document.getElementById(i).value='');
+  toast('Saved + on the calendar (needs a driver!) 📅');
+  kidsDraw();
+}
+async function kidEvtDel(id, eid){
+  if(!armDel('ke'+eid)){ kidsDraw(); return; }
+  const k = KIDS.find(k=>k.id===id);
+  k.evts = k.evts.filter(e=>e.id!==eid);
+  await kidsSave(); kidsDraw();
+}
+async function kidChoreAdd(id){
+  const k = KIDS.find(k=>k.id===id);
+  const t = document.getElementById('kc-'+id).value.trim(); if(!t) return;
+  k.chores.push({id:uid(), t});
+  await kidsSave();
+  document.getElementById('kc-'+id).value='';
+  kidsDraw();
+}
+async function kidChoreDel(id, cid){
+  const k = KIDS.find(k=>k.id===id);
+  k.chores = k.chores.filter(c=>c.id!==cid);
+  await kidsSave(); kidsDraw();
+}
+function kidChoreCal(id, cid){
+  const k = KIDS.find(k=>k.id===id), c = k.chores.find(c=>c.id===cid);
+  nav('cal').then(()=>{
+    document.getElementById('calTitle').value = `🧹 ${k.n}: ${c.t}`;
+    document.getElementById('calType').value = '🧒';
+    toast('Pick the day, add it — reminder set 📅');
+  });
+}
+async function kidsDraw(){
+  await kidsLoad();
+  const el = document.getElementById('kidsBody');
+  if(KIDSEL){
+    const k = KIDS.find(x=>x.id===KIDSEL);
+    if(!k){ KIDSEL = null; kidsDraw(); return; }
+    const b = k.bday? nextBday(k.bday) : null;
+    const evts = [...k.evts].sort((a,b2)=>a.date.localeCompare(b2.date)).filter(e=>e.date>=todayStr());
+    el.innerHTML = `
+      <button class="btn small" onclick="KIDSEL=null; kidsDraw()">← All kids</button>
+      <div class="card" style="background:#FFF3D6;">
+        <b style="font-size:19px;">🧒 ${esc(k.n)}</b>
+        <div style="font-size:13px; font-weight:800; opacity:.75;">${k.bday? 'Age '+kidAge(k.bday)+' · 🎂 in '+b.days+'d' : ''}</div>
+        <div class="statline"><span>🚨 Allergies / medical</span><input type="text" value="${esc(k.med||'')}" placeholder="none known" style="max-width:55%; padding:5px;" onchange="kidField('${k.id}','med',this.value)"></div>
+        <div class="statline"><span>👕 Current sizes</span><input type="text" value="${esc(k.sizes||'')}" placeholder="clothes / shoes" style="max-width:55%; padding:5px;" onchange="kidField('${k.id}','sizes',this.value)"></div>
+      </div>
+      <div class="card"><b>📅 Sleepovers, parties & events</b>
+        <div style="display:grid; gap:6px; margin-top:8px;">
+          <div style="display:flex; gap:6px;">
+            <select id="ke-k" class="dtin" style="max-width:96px;"><option value="🛌">🛌 Sleepover</option><option value="🎈">🎈 Party</option><option value="⚽">⚽ Game</option><option value="📌">📌 Other</option></select>
+            <input type="text" id="ke-t" placeholder="At Johnny’s house…" maxlength="40" style="flex:1;">
+          </div>
+          <div style="display:flex; gap:6px;"><input type="date" id="ke-d" class="dtin"><input type="time" id="ke-tm" class="dtin"></div>
+          <input type="text" id="ke-a" placeholder="Address" maxlength="60">
+          <div style="display:flex; gap:6px;"><input type="text" id="ke-p" inputmode="tel" placeholder="Parents’ phone" maxlength="18" class="dtin"><input type="text" id="ke-pu" placeholder="Pickup time / place" maxlength="30" class="dtin"></div>
+          <input type="text" id="ke-b" placeholder="Bring: gift 🎁, swimsuit, sleeping bag…" maxlength="60">
+          <button class="btn teal" onclick="kidEvtAdd('${k.id}')">Save + add to calendar</button>
+        </div>
+        ${evts.map(e=>`<div class="card" style="padding:10px; margin:8px 0 0; background:#FFF6EA;">
+          <div style="display:flex; gap:8px; align-items:center;"><b style="flex:1;">${e.kind} ${esc(e.title)}</b>
+            <b style="font-size:12px;">${fmtD(e.date)}${e.time? ' '+e.time:''}</b>
+            <button class="btn small" style="padding:2px 8px;" onclick="kidEvtDel('${k.id}','${e.id}')">✕</button></div>
+          ${e.addr? `<div class="statline"><span>📍</span><b style="font-size:13px;">${esc(e.addr)}</b></div>`:''}
+          ${e.phone? `<div class="statline"><span>📞 Parents</span><a class="btn small" style="padding:2px 9px; text-decoration:none;" href="tel:${esc(e.phone).replace(/[^0-9+]/g,'')}">${esc(e.phone)}</a></div>`:''}
+          ${e.pickup? `<div class="statline"><span>🚗 Pickup</span><b style="font-size:13px;">${esc(e.pickup)}</b></div>`:''}
+          ${e.bring? `<div class="statline"><span>🎒 Bring</span><b style="font-size:13px;">${esc(e.bring)}</b></div>`:''}
+        </div>`).join('')}
+      </div>
+      <div class="card"><b>⚽ Activities & teams</b>
+        <div style="display:grid; gap:6px; margin-top:8px;">
+          <div style="display:flex; gap:6px;"><input type="text" id="ka-n" placeholder="Soccer U10…" maxlength="30" class="dtin"><input type="text" id="ka-p" placeholder="Where" maxlength="34" class="dtin"></div>
+          <div style="display:flex; gap:6px;"><input type="text" id="ka-c" placeholder="Coach" maxlength="24" class="dtin"><input type="text" id="ka-ph" inputmode="tel" placeholder="Coach phone" maxlength="18" class="dtin"></div>
+          <div class="sendrow"><input type="text" id="ka-s" placeholder="Schedule (Tue/Thu 6pm)" maxlength="40"><button class="btn small teal" onclick="kidActAdd('${k.id}')">＋</button></div>
+        </div>
+        ${k.acts.map(a=>`<div class="card" style="padding:10px; margin:8px 0 0; background:#E0F5F1;">
+          <div style="display:flex; gap:8px; align-items:center;"><b style="flex:1;">${esc(a.n)}</b>
+            <button class="btn small" style="padding:2px 8px;" onclick="kidActCal('${k.id}','${a.id}')">📅</button>
+            <button class="btn small" style="padding:2px 8px;" onclick="kidActDel('${k.id}','${a.id}')">✕</button></div>
+          <div style="font-size:13px; font-weight:700; opacity:.8;">${esc(a.sched||'')}${a.place? ' · '+esc(a.place):''}</div>
+          ${a.coach? `<div class="statline"><span>Coach ${esc(a.coach)}</span>${a.phone? `<a class="btn small" style="padding:2px 9px; text-decoration:none;" href="tel:${esc(a.phone).replace(/[^0-9+]/g,'')}">📞</a>`:'<span></span>'}</div>`:''}
+        </div>`).join('')}
+      </div>
+      <div class="card"><b>📏 Growth log</b>
+        <div class="sendrow"><input type="text" id="kg-${k.id}" placeholder="Height today (e.g. 4′2″ / 127cm)" maxlength="16"><button class="btn small teal" onclick="kidGrow('${k.id}')">＋</button></div>
+        <button class="btn small gold block" onclick="kidGrowRemind('${k.id}')">📅 Remind us yearly</button>
+        ${k.growth.slice(-8).reverse().map(g=>`<div class="statline"><span>${fmtD(g.d)}</span><b>${esc(g.h)}</b></div>`).join('')}
+      </div>
+      <div class="card"><b>⭐ Milestones & wins</b>
+        <div style="font-size:12px; font-weight:700; opacity:.6;">First words → first goal → top test score → graduation. Log it all — future-you will cry reading this.</div>
+        <div class="sendrow"><input type="text" id="km-${k.id}" placeholder="e.g. First bike ride, no training wheels!" maxlength="70"><button class="btn small pink" onclick="kidMile('${k.id}')">＋</button></div>
+        ${k.miles.map((m,i)=>`<div class="statline" style="align-items:flex-start;"><span style="max-width:75%;">⭐ ${esc(m.t)}</span><span style="white-space:nowrap;"><b style="font-size:11px; opacity:.6;">${fmtD(m.d)}</b> <button class="btn small" style="padding:1px 7px; box-shadow:2px 2px 0 var(--ink);" onclick="kidMileDel('${k.id}',${i})">✕</button></span></div>`).join('')}
+      </div>
+      <div class="card"><b>🧹 Chores</b>
+        <div class="sendrow"><input type="text" id="kc-${k.id}" placeholder="e.g. Feed the pug (daily)" maxlength="40"><button class="btn small teal" onclick="kidChoreAdd('${k.id}')">＋</button></div>
+        ${k.chores.map(c=>`<div class="statline"><span>${esc(c.t)}</span><span style="white-space:nowrap;">
+          <button class="btn small" style="padding:2px 8px;" onclick="kidChoreCal('${k.id}','${c.id}')">📅</button>
+          <button class="btn small" style="padding:2px 8px;" onclick="kidChoreDel('${k.id}','${c.id}')">✕</button></span></div>`).join('')}
+      </div>
+      <button class="btn small block" onclick="kidDel('${k.id}')">🗑️ Remove ${esc(k.n)}</button>`;
+    return;
+  }
+  el.innerHTML = `<div class="card"><b>Add a kid</b>
+      <div style="display:flex; gap:8px; margin-top:8px;"><input type="text" id="kidName" placeholder="Name" maxlength="18" style="flex:1;"><input type="date" id="kidBday" class="dtin" style="flex:1;"></div>
+      <button class="btn teal block" onclick="kidAdd()">Add to the family</button>
+      <div style="font-size:12px; font-weight:700; opacity:.6;">Each kid gets a full command center: sleepovers with addresses & parents’ numbers, teams & coaches, growth chart, milestones from first words to graduation, chores, allergies & sizes.</div>
+    </div>` +
+    KIDS.map(k=>{
+      const b = k.bday? nextBday(k.bday) : null;
+      return `<button class="card" style="width:100%; text-align:left; padding:12px; display:flex; align-items:center; gap:10px;" onclick="KIDSEL='${k.id}'; kidsDraw()">
+        <span style="font-size:26px;">🧒</span>
+        <span style="flex:1;"><b style="font-size:16px;">${esc(k.n)}</b><div style="font-size:12px; font-weight:800; opacity:.7;">${k.bday? 'Age '+kidAge(k.bday)+(b? ' · 🎂 '+b.days+'d':'') : 'tap to open'}${k.evts.filter(e=>e.date>=todayStr()).length? ' · '+k.evts.filter(e=>e.date>=todayStr()).length+' upcoming':''}</div></span>
+        <span>›</span></button>`;
+    }).join('');
+}
+
+/* ---- RELATIVES / TREE / IN MEMORIAM ---- */
+let FAMS = [];
+async function famLoad(){ FAMS = (await sget('mast:family')) || []; }
+async function famSave(){ await sset('mast:family', FAMS); }
+async function famAdd(){
+  const n = document.getElementById('famName').value.trim(); if(!n) return;
+  FAMS.push({id:uid(), n, rel:document.getElementById('famRel').value.trim(), side:document.getElementById('famSide').value,
+    bday:document.getElementById('famBday').value||'', phone:document.getElementById('famPhone').value.trim(), rip:false, ripNote:''});
+  await famSave();
+  ['famName','famRel','famPhone'].forEach(i=>document.getElementById(i).value='');
+  famDraw();
+}
+async function famDel(id){
+  if(!armDel('fm'+id)){ famDraw(); return; }
+  FAMS = FAMS.filter(f=>f.id!==id); await famSave(); famDraw();
+}
+async function famRip(id){
+  if(!armDel('rip'+id)){ toast('Tap 🕯️ again to move to In Memoriam'); famDraw(); return; }
+  const f = FAMS.find(f=>f.id===id);
+  f.rip = true; f.ripDate = todayStr();
+  await famSave(); famDraw();
+}
+async function famRipNote(id, v){ const f = FAMS.find(f=>f.id===id); f.ripNote = v; await famSave(); }
+async function famDraw(){
+  await famLoad();
+  const sides = [['ours','💑 Our crew'],['p1side',`${AV.p1} ${STATS? esc(STATS.p1.name):'P1'}’s side`],['p2side',`${AV.p2} ${STATS? esc(STATS.p2.name):'P2'}’s side`]];
+  const living = FAMS.filter(f=>!f.rip), gone = FAMS.filter(f=>f.rip);
+  document.getElementById('famBody').innerHTML = `
+    <div class="card"><b>Add family</b>
+      <div style="display:grid; gap:6px; margin-top:8px;">
+        <div style="display:flex; gap:6px;"><input type="text" id="famName" placeholder="Name" maxlength="24" class="dtin"><input type="text" id="famRel" placeholder="Relation (aunt, nephew…)" maxlength="20" class="dtin"></div>
+        <div style="display:flex; gap:6px;">
+          <select id="famSide" class="dtin">${sides.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}</select>
+          <input type="date" id="famBday" class="dtin">
+        </div>
+        <div class="sendrow"><input type="text" id="famPhone" inputmode="tel" placeholder="Phone (optional)" maxlength="18"><button class="btn small teal" onclick="famAdd()">＋</button></div>
+      </div>
+      <div style="font-size:12px; font-weight:700; opacity:.6; margin-top:4px;">Birthdays here appear automatically on the calendar 🎈 and in your morning heads-up.</div>
+    </div>` +
+    sides.map(([v,l])=>{
+      const rows = living.filter(f=>f.side===v).sort((a,b)=>a.n.localeCompare(b.n));
+      if(!rows.length) return '';
+      return `<div class="sect">${l}</div>` + rows.map(f=>{
+        const b = f.bday? nextBday(f.bday) : null;
+        return `<div class="card" style="padding:9px 12px; margin:5px 0; display:flex; align-items:center; gap:8px;">
+          <div style="flex:1;"><b>${esc(f.n)}</b> <span style="font-size:12px; font-weight:700; opacity:.6;">${esc(f.rel||'')}</span>
+            ${b? `<div style="font-size:11px; font-weight:800; opacity:.65;">🎈 ${b.days===0?'birthday TODAY!':'birthday in '+b.days+'d'}</div>`:''}</div>
+          ${f.phone? `<a class="btn small teal" style="padding:3px 9px; text-decoration:none;" href="tel:${esc(f.phone).replace(/[^0-9+]/g,'')}">📞</a>`:''}
+          <button class="btn small" style="padding:3px 8px;" onclick="famRip('${f.id}')">🕯️</button>
+          <button class="btn small" style="padding:3px 8px;" onclick="famDel('${f.id}')">✕</button>
+        </div>`;
+      }).join('');
+    }).join('') +
+    (gone.length? `<div class="sect">🕯️ In Memoriam</div>` + gone.map(f=>`
+      <div class="card" style="background:#F3EEE6; border-style:double;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:22px;">🕯️</span>
+          <div style="flex:1;"><b>${esc(f.n)}</b> <span style="font-size:12px; opacity:.6; font-weight:700;">${esc(f.rel||'')}</span></div>
+          <button class="btn small" style="padding:3px 8px;" onclick="famDel('${f.id}')">✕</button>
+        </div>
+        <input type="text" value="${esc(f.ripNote||'')}" placeholder="A memory worth keeping…" style="margin-top:8px; font-style:italic;" onchange="famRipNote('${f.id}',this.value)">
+      </div>`).join('') : '');
+}
+
+/* ---- THE ORACLE (yes/no) ---- */
+const ORACLE_YES = ['✅ YES.','✅ Absolutely yes.','✅ Yes — and don’t overthink it.','✅ The Oracle says send it.','✅ Yes. Bold move approved.'];
+const ORACLE_NO = ['❌ NO.','❌ Hard pass.','❌ No — future you says thanks.','❌ The Oracle wrinkles its nose. No.','❌ Nope. Ask again tomorrow.'];
+let oracleBusy = false;
+function oracleAsk(){
+  if(oracleBusy) return;
+  oracleBusy = true;
+  const el = document.getElementById('oracleOut');
+  let n = 0;
+  const iv = setInterval(()=>{
+    n++;
+    el.textContent = ['🔮','✨','🔮','🌟'][n%4] + ' consulting…';
+    if(n>=10){
+      clearInterval(iv); oracleBusy = false;
+      const yes = Math.random()<0.5;
+      el.textContent = (yes? ORACLE_YES : ORACLE_NO)[Math.floor(Math.random()*5)];
+    }
+  }, 120);
+}
+
+/* ---- THE COUNSELOR ---- */
+const COUNSEL_PERSP = [
+ ['Freud — what’s old is loud','When a small thing triggers a huge reaction, the reaction is usually older than the marriage. Ask each other, gently: “How old does this feeling seem? Where have you felt it before?” You’re often arguing with a ghost, not your spouse.'],
+ ['Jung — the shadow knows','The traits that most irritate you in your partner are worth examining in the mirror — projection is real. And the “shadow” you hide (anger, neediness, ambition) leaks out sideways until it’s owned out loud. Owning it is intimacy.'],
+ ['Adler — every behavior has a goal','Don’t ask “why are they like this?” Ask “what is this behavior trying to get?” Nagging seeks reassurance. Withdrawing seeks safety. Address the goal underneath and the behavior loses its job.'],
+ ['Bowlby & EFT — protest is a reach','Attachment science’s big reveal: most fights aren’t about the dishes. They’re protest — “are you there for me? do I matter?” Answer THAT question first (“I’m here, you matter, we’re okay”) and watch the dishes argument deflate.'],
+ ['Gottman — the math of marriage','Forty years of lab data: it’s not whether you fight, it’s the 5:1 positive ratio, whether repair attempts land, and keeping contempt at absolute zero. Boring daily deposits beat grand gestures every time.'],
+ ['Frankl — meaning holds the weight','Hard seasons come to every marriage — illness, loss, money, grief. The couples who endure aren’t the ones who avoid suffering; they’re the ones who decide together what it means. “What is this season asking of us?” is a powerful question.'],
+ ['Tony Robbins — change the state first','You cannot problem-solve from a bad state. Motion changes emotion: walk while you talk, breathe before you speak, feed and water the humans first. Then ask the better question — not “why does this always happen” but “what do we want instead?”'],
+ ['The meta-rule','Every school agrees on one thing: the problem is rarely the problem. The pattern is the problem. Name your pattern out loud, give it a silly name (“we’re doing the spiral again”), and it loses half its power on the spot.']
+];
+const COUNSEL_SCRIPTS = [
+ ['Starting a hard talk','“Hey — I want to talk about something, and I’m on your team while I do it. Is now okay, or tonight?”'],
+ ['The XYZ complaint','“When ___ happened, in ___ situation, I felt ___. What I need is ___.” (Feelings aren’t debatable. This is nearly un-fightable.)'],
+ ['When you’re flooding','“I care about this too much to fight badly. I need 20 minutes, and I promise I’m coming back to it.”'],
+ ['Repair mid-fight','“Can we restart? That came out wrong.” · “Same team, remember?” · a hand on the knee. Let their repairs LAND, too.'],
+ ['When they vent','“That sounds really hard.” Then: “Do you want ideas, or do you want me to just be with you in it?”'],
+ ['Taking your 10%','“You’re right about part of that. My part was ___, and I’m sorry for it.” (This one is a cheat code. Ten percent unlocks everything.)'],
+ ['Closing any conflict','“What’s one thing we each agree to do differently?” Then: one appreciation each. Never skip the appreciation.']
+];
+const SESSION_STEPS = [
+ ['🪑 Set the table','Sit on the same side — literally. Phones away. Say out loud: “We’re on the same team, and the problem is over THERE.” Sounds silly. Works anyway.'],
+ ['🗣️ Speaker one (2 min)','One of you shares using XYZ: “When X happened, in situation Y, I felt Z.” No ‘always’, no ‘never’, no scorekeeping. The other only listens.'],
+ ['🪞 Reflect it back','Listener: “So what I hear is…” and repeat it until the speaker says “yes, that’s it.” You don’t have to agree — only to understand. This step is the whole ballgame.'],
+ ['🔁 Switch','Now trade. Speaker two shares (XYZ), speaker one reflects until they get a “yes, that’s it.”'],
+ ['🌀 Name the pattern','Together: what’s the loop? (Pursue/withdraw? Criticize/defend? Fix/vent mismatch?) Give it a name. The pattern is the enemy — not either of you.'],
+ ['🤝 One small agreement','Not a grand resolution — ONE small, concrete thing each of you will do differently this week. Write it in the Decision Log so it’s official.'],
+ ['💛 Close with gold','One genuine appreciation each, eye contact, and physical contact — hug, hand, forehead. Session complete. (+3 🙂 each — you earned it.)']
+];
+let SESS = 0;
+function counselTab(t){
+  document.getElementById('counselTabs').innerHTML = [['persp','🧠 Perspectives'],['session','🛋️ Guided Repair'],['scripts','💬 Magic Scripts']].map(([k,l])=>
+    `<button class="tab ${k===t?'on':''}" onclick="counselTab('${k}')">${l}</button>`).join('');
+  const b = document.getElementById('counselBody');
+  if(t==='persp') b.innerHTML = `<div class="card center" style="background:#EAE6FB;"><b>🛋️ The Counselor is in</b><div style="font-size:13px; font-weight:700; opacity:.75;">A century of the greats, distilled for two people who love each other and occasionally argue about the thermostat.</div></div>` + COUNSEL_PERSP.map(([h,x])=>card(h,x)).join('');
+  if(t==='scripts') b.innerHTML = COUNSEL_SCRIPTS.map(([h,x])=>card(h,x)).join('');
+  if(t==='session'){ SESS = 0; sessDraw(); }
+}
+function sessDraw(){
+  const b = document.getElementById('counselBody');
+  const [h,x] = SESSION_STEPS[SESS];
+  b.innerHTML = `<div class="card center"><b>Guided Repair · step ${SESS+1} of ${SESSION_STEPS.length}</b>
+    <div style="display:flex; gap:4px; margin:8px 0;">${SESSION_STEPS.map((_,i)=>`<div style="flex:1; height:8px; border-radius:99px; border:2px solid var(--ink); background:${i<=SESS?'var(--teal)':'#fff'};"></div>`).join('')}</div></div>
+    <div class="lovecard"><h4>${h}</h4>${x}</div>
+    <div style="display:flex; gap:8px;">
+      ${SESS>0? `<button class="btn" style="flex:1;" onclick="SESS--; sessDraw()">← Back</button>`:''}
+      ${SESS<SESSION_STEPS.length-1
+        ? `<button class="btn pink" style="flex:2;" onclick="SESS++; sessDraw()">Next →</button>`
+        : `<button class="btn teal" style="flex:2;" onclick="sessDone()">🏁 Session complete</button>`}
+    </div>`;
+}
+async function sessDone(){
+  await loadStats(); STATS.p1.coins+=3; STATS.p2.coins+=3; await saveStats(); refreshWallet();
+  logAct('completed a Guided Repair session 🛋️ (+3 🙂 each)');
+  toast('That’s the hard work. +3 🙂 each 💛');
+  counselTab('persp');
+}
+
+/* ---- PARTNER PROFILES ---- */
+const LANGS5 = ['Words of affirmation','Quality time','Acts of service','Gifts','Physical touch'];
+const LANG_TIPS = {
+ 'Words of affirmation':'say the compliment OUT LOUD, leave notes, text specific praise, and never weaponize words in a fight — words cut this person deepest.',
+ 'Quality time':'phone down, eyes up. Twenty undistracted minutes beats an expensive distracted evening. Plan things that are just the two of you.',
+ 'Acts of service':'do the thing without being asked. Their love math is “you noticed and you helped.” The dishes are romance. Genuinely.',
+ 'Gifts':'it’s never about price — it’s “I was thinking of you when we were apart.” Keep the Gift Vault stocked with their hints.',
+ 'Physical touch':'small consistent touch all day — hand on the back, hair tuck, the six-second kiss. Distance feels like distance to this person.'
+};
+const ATTS4 = ['Secure','Anxious','Avoidant','Disorganized'];
+const MBTI_BLURB = {ISTJ:'The Inspector — dutiful, precise, reliable', ISFJ:'The Protector — warm, devoted, steady', INFJ:'The Advocate — insightful, idealistic, deeply empathic', INTJ:'The Architect — strategic, independent, visionary', ISTP:'The Craftsman — hands-on, calm, adaptable', ISFP:'The Artist — gentle, present, aesthetic', INFP:'The Mediator — values-driven, imaginative, kind', INTP:'The Thinker — curious, logical, inventive', ESTP:'The Dynamo — bold, practical, energetic', ESFP:'The Entertainer — playful, social, spontaneous', ENFP:'The Campaigner — enthusiastic, creative, warm', ENTP:'The Debater — quick, clever, loves the argument (recreationally)', ESTJ:'The Executive — organized, decisive, dependable', ESFJ:'The Consul — caring, social, community-hearted', ENFJ:'The Protagonist — inspiring, tuned-in, natural leader', ENTJ:'The Commander — driven, direct, big-picture'};
+const SIGNS12 = {'♈ Aries':'bold, direct, first in line','♉ Taurus':'steady, loyal, comfort-loving','♊ Gemini':'curious, quick, two moods minimum','♋ Cancer':'nurturing, intuitive, home-hearted','♌ Leo':'warm, proud, main-character energy','♍ Virgo':'precise, helpful, secretly romantic','♎ Libra':'harmonious, fair, allergic to conflict','♏ Scorpio':'intense, loyal, all-or-nothing','♐ Sagittarius':'adventurous, honest, wanderlusty','♑ Capricorn':'ambitious, dry-witted, rock-solid','♒ Aquarius':'original, independent, future-minded','♓ Pisces':'dreamy, empathic, feels everything'};
+function attCombo(a, b){
+  const set = [a,b].sort().join('+');
+  if(a==='Secure' && b==='Secure') return 'Two secures — your job is simply not to get complacent. Keep dating each other.';
+  if(set.includes('Anxious') && set.includes('Avoidant')) return 'The classic pursue/withdraw pairing — the anxious partner reaches harder as the avoidant one retreats. Your superpower move: the pursuer softens the approach, the withdrawer STAYS in the room and says “I need a minute but I’m not going anywhere.” Name the loop out loud when it starts.';
+  if(a==='Secure' || b==='Secure') return 'One secure anchor in the pair is a gift — the secure partner sets the emotional weather. Lean on consistency, repair fast, and the other style gradually earns security. This is how it’s supposed to work.';
+  if(a==='Anxious' && b==='Anxious') return 'Two anxious hearts love HARD but can spiral together. Scheduled reassurance rituals (the daily debrief, the 6-second kiss) give the nervous systems something to trust.';
+  if(a==='Avoidant' && b==='Avoidant') return 'Two independents — calm household, but drift is your enemy. Put connection on the calendar like it’s a meeting, because for you two, unscheduled closeness quietly doesn’t happen.';
+  return 'Mixed styles — the play is the same for everyone: consistency, fast repair, and naming the pattern instead of blaming the person.';
+}
+let PROF = null;
+async function profLoad(){
+  PROF = (await sget('mast:profiles')) || {p1:{}, p2:{}};
+  PROF.p1 = Object.assign({lang:'',att:'',mbti:'',sign:'',traits:'',notes:[]}, PROF.p1);
+  PROF.p2 = Object.assign({lang:'',att:'',mbti:'',sign:'',traits:'',notes:[]}, PROF.p2);
+}
+async function profSave(){ await sset('mast:profiles', PROF); }
+async function profSet(){
+  const me = PROF[ME];
+  me.lang = document.getElementById('pfLang').value;
+  me.att = document.getElementById('pfAtt').value;
+  me.mbti = document.getElementById('pfMbti').value;
+  me.sign = document.getElementById('pfSign').value;
+  me.traits = document.getElementById('pfTraits').value.trim();
+  await profSave();
+  logAct('updated their partner profile 🪞');
+  toast('Profile saved 🪞');
+  profDraw();
+}
+async function profNote(){
+  const t = document.getElementById('pfNote').value.trim(); if(!t) return;
+  PROF[ME].notes.unshift({d:todayStr(), t});
+  PROF[ME].notes = PROF[ME].notes.slice(0,30);
+  await profSave();
+  document.getElementById('pfNote').value='';
+  sendText('🪞 I added a “something you should know about me” note — go read it.');
+  toast('For the record 📜');
+  profDraw();
+}
+async function profDraw(){
+  await profLoad();
+  const me = PROF[ME], them = PROF[OTHER(ME)];
+  const sel = (id, opts, cur, blank) => `<select id="${id}" class="dtin">${blank?`<option value="">${blank}</option>`:''}${opts.map(o=>`<option ${o===cur?'selected':''}>${o}</option>`).join('')}</select>`;
+  const chipLine = (p, d) => `<div class="statline" style="align-items:flex-start;"><span>${AV[p]} ${esc(STATS[p].name)}</span><b style="max-width:62%; text-align:right; font-size:13px;">${d || '<span style="opacity:.4;">not set yet</span>'}</b></div>`;
+  const dsc = p => [PROF[p].lang, PROF[p].att && PROF[p].att+' attachment', PROF[p].mbti && PROF[p].mbti, PROF[p].sign, PROF[p].traits].filter(Boolean).map(esc).join(' · ');
+  let fit = '';
+  if(me.lang && them.lang) fit += card('💬 Speak their language', `${esc(STATS[OTHER(ME)].name)}’s language is <b>${esc(them.lang)}</b> — ${LANG_TIPS[them.lang]}<br><br>Yours is <b>${esc(me.lang||'?')}</b> — make sure they know it too.`);
+  if(me.att && them.att) fit += card('🧷 Your attachment dance', attCombo(me.att, them.att));
+  if(me.mbti && MBTI_BLURB[me.mbti]) fit += card('🧠 Personality types', `${AV[ME]} <b>${me.mbti}</b>: ${MBTI_BLURB[me.mbti]}.<br>${them.mbti && MBTI_BLURB[them.mbti]? AV[OTHER(ME)]+' <b>'+them.mbti+'</b>: '+MBTI_BLURB[them.mbti]+'.' : ''}<br><br>The value isn’t the labels — it’s the vocabulary. “I’m an I recharging” beats “leave me alone.”`);
+  if(me.sign && them.sign) fit += card('✨ The stars (for fun)', `${AV[ME]} ${me.sign} — ${SIGNS12[me.sign]||''}.<br>${AV[OTHER(ME)]} ${them.sign} — ${SIGNS12[them.sign]||''}.<br><br>Scientifically dubious, conversationally excellent.`);
+  const notes = [...(PROF.p1.notes||[]).map(n=>({...n, by:'p1'})), ...(PROF.p2.notes||[]).map(n=>({...n, by:'p2'}))].sort((a,b)=>b.d.localeCompare(a.d));
+  document.getElementById('profBody').innerHTML = `
+    <div class="card"><b>🪞 Your profile (${esc(STATS[ME].name)})</b>
+      <div style="display:grid; gap:8px; margin-top:8px;">
+        ${sel('pfLang', LANGS5, me.lang, 'Love language…')}
+        ${sel('pfAtt', ATTS4, me.att, 'Attachment style…')}
+        <div style="display:flex; gap:8px;">${sel('pfMbti', Object.keys(MBTI_BLURB), me.mbti, 'MBTI…')}${sel('pfSign', Object.keys(SIGNS12), me.sign, 'Sign…')}</div>
+        <input type="text" id="pfTraits" value="${esc(me.traits||'')}" placeholder="In your words: empath, introvert, night owl…" maxlength="60">
+        <button class="btn teal" onclick="profSet()">Save profile</button>
+      </div>
+      <div style="font-size:12px; font-weight:700; opacity:.6; margin-top:4px;">Not sure of your love language or attachment style? The Grow Together wing explains each — read, then pick.</div>
+    </div>
+    <div class="card"><b>👀 At a glance</b>${chipLine('p1', dsc('p1'))}${chipLine('p2', dsc('p2'))}</div>
+    ${fit || '<div class="card center" style="opacity:.7; font-weight:700;">Fill in both profiles and this section writes your owner’s manual for each other.</div>'}
+    <div class="card"><b>📜 Something you should know about me</b>
+      <div style="font-size:12px; font-weight:700; opacity:.6;">Little notes for posterity — quirks, needs, confessions, instructions. Both of you can read all of them, forever.</div>
+      <div class="sendrow"><input type="text" id="pfNote" placeholder="e.g. When I go quiet, I’m not mad — I’m recharging." maxlength="120"><button class="btn pink" onclick="profNote()">＋</button></div>
+      ${notes.map(n=>`<div class="lovecard" style="margin:8px 0; padding:12px;">“${esc(n.t)}”<div style="font-size:11px; font-weight:800; opacity:.55; margin-top:4px;">${AV[n.by]} ${esc(STATS[n.by].name)} · ${fmtD(n.d)}</div></div>`).join('')}
+    </div>`;
+}
+
+/* ---- MODERN HAPPINESS (Soul & Mind tab) ---- */
+LIB.soul.tabs.push(['happy','😊 Modern Happiness',[
+ ['The hedonic treadmill','New car, raise, gadget — the buzz fades in weeks and the baseline resets. Chasing MORE is a treadmill by design. Off-ramps: gratitude, savoring, and wanting what you already have on purpose.'],
+ ['PERMA — happiness has parts','Positive emotion, Engagement (flow), Relationships, Meaning, Accomplishment. When life feels flat, audit the five: usually one tank is empty, and it’s usually Relationships or Meaning — the two the modern world quietly drains.'],
+ ['Comparison is the thief','Social media is a highlight reel competing against your behind-the-scenes. Practical hygiene: unfollow anyone who reliably makes you feel worse, no feeds in the first hour awake, and remember the algorithm profits from your discontent.'],
+ ['Buy experiences, and buy time','Decades of research: experiences beat stuff (they improve with memory; stuff degrades), and spending money to buy back time — help, delivery, the shortcut — reliably raises happiness more than the equivalent object.'],
+ ['Flow is the good stuff','The happiest hours are absorbed ones — a skill meeting a challenge just past your comfort zone. Build flow on purpose: the Mentor quests, cooking, the garden, the garage. Screens mostly imitate flow without delivering it.'],
+ ['Savoring — the free upgrade','Happiness isn’t just what happens; it’s how long you let it land. Anticipate trips out loud, linger over the good bite, replay the win at dinner. The Memory Jar in this app is literally a savoring machine.'],
+ ['The relationship is the result','The 85-year Harvard study’s entire conclusion: warm relationships are the single strongest predictor of health and happiness — beating wealth, fame, and cholesterol. You two are each other’s longevity plan. Invest accordingly.'],
+ ['Move, sunlight, sleep, outside','Boring, unbeatable: 20 minutes of movement outperforms most interventions for mood, morning light sets the whole day’s chemistry, and nature time lowers rumination measurably. Nothing digital replaces the animal basics.'],
+ ['Meaning beats pleasure','Pleasure is a sparkler; meaning is a woodstove. Service, faith, raising humans well, building something together — the meaningful path is often the harder one, and it’s the one that holds heat. Choose woodstove.']
+]]);
+
+/* ---- UPCOMING EXPENSES ---- */
+let UP = [];
+async function upLoad(){ UP = (await sget('mast:upcoming')) || []; }
+async function upAdd(){
+  const n = document.getElementById('upName').value.trim();
+  const a = parseFloat(document.getElementById('upAmt').value);
+  const d = document.getElementById('upDue').value;
+  if(!n || !a || !d){ toast('Needs a name, amount, and date'); return; }
+  UP.push({id:uid(), n, a, due:d, paid:false});
+  await sset('mast:upcoming', UP);
+  logAct(`scheduled expense: ${n} ($${a}, ${fmtD(d)})`);
+  ['upName','upAmt'].forEach(i=>document.getElementById(i).value='');
+  upDraw();
+}
+async function upPaid(id){
+  const u = UP.find(u=>u.id===id); u.paid = !u.paid;
+  await sset('mast:upcoming', UP);
+  if(u.paid) logAct(`paid: ${u.n} ($${u.a}) ✅`);
+  upDraw();
+}
+async function upDel(id){
+  if(!armDel('up'+id)){ upDraw(); return; }
+  UP = UP.filter(u=>u.id!==id); await sset('mast:upcoming', UP); upDraw();
+}
+function upDraw(){
+  const open = UP.filter(u=>!u.paid).sort((a,b)=>a.due.localeCompare(b.due));
+  const in30 = open.filter(u=>daysUntil(u.due)<=30).reduce((s,u)=>s+u.a,0);
+  const in90 = open.filter(u=>daysUntil(u.due)<=90).reduce((s,u)=>s+u.a,0);
+  document.getElementById('moneyBody').innerHTML = `
+    <div class="card center"><b>Coming at your wallet</b>
+      <div style="display:flex; gap:12px; justify-content:center; margin-top:6px;">
+        <span><div style="font-size:24px; font-weight:900;">$${in30.toFixed(0)}</div><div style="font-size:11px; font-weight:800; opacity:.6;">next 30 days</div></span>
+        <span><div style="font-size:24px; font-weight:900;">$${in90.toFixed(0)}</div><div style="font-size:11px; font-weight:800; opacity:.6;">next 90 days</div></span>
+      </div></div>
+    <div class="card"><b>Add an upcoming expense</b>
+      <div style="display:grid; gap:8px; margin-top:8px;">
+        <input type="text" id="upName" placeholder="Property tax · New tires · Bathroom reno deposit…" maxlength="40">
+        <div style="display:flex; gap:8px;"><input type="text" id="upAmt" inputmode="decimal" placeholder="$" class="dtin"><input type="date" id="upDue" class="dtin" style="flex:2;"></div>
+        <button class="btn teal" onclick="upAdd()">Schedule it</button>
+      </div>
+      <div style="font-size:12px; font-weight:700; opacity:.6;">One-offs and deadlines — the reno deposit, the insurance renewal, the vet dental. They’ll show in your morning heads-up as they approach. For repeating bills use the Bills tab; for save-up goals use Home Care → Projects.</div>
+    </div>
+    ${open.map(u=>{
+      const dl = daysUntil(u.due);
+      return `<div class="card" style="padding:10px 12px; margin:6px 0; display:flex; align-items:center; gap:8px; ${dl<=7?'background:#FFE3EC;':''}">
+        <button class="btn small" onclick="upPaid('${u.id}')">○</button>
+        <div style="flex:1;"><b>${esc(u.n)}</b><div style="font-size:12px; font-weight:800; opacity:.65;">${fmtD(u.due)} · ${dl<0? '❗ '+(-dl)+'d overdue' : dl+'d away'}</div></div>
+        <b>$${u.a}</b>
+        <button class="btn small" style="padding:3px 8px;" onclick="upDel('${u.id}')">✕</button>
+      </div>`;
+    }).join('')}
+    ${UP.filter(u=>u.paid).length? `<div class="sect">✅ Handled</div>` + UP.filter(u=>u.paid).map(u=>`
+      <div class="statline" style="opacity:.55;"><span>✅ ${esc(u.n)}</span><span><b>$${u.a}</b> <button class="btn small" style="padding:2px 8px; box-shadow:2px 2px 0 var(--ink);" onclick="upDel('${u.id}')">✕</button></span></div>`).join(''):''}`;
+}
+async function moneyLoad(){
+  BILLS = (await sget('mast:bills')) || [];
+  SPEND = (await sget('mast:spend')) || [];
+  await upLoad();
+  moneyTab(MONEYTAB);
+}
+function moneyTab(t){
+  MONEYTAB = t;
+  document.getElementById('moneyTabs').innerHTML = [['bills','🔁 Bills'],['up','📆 Upcoming'],['spend','🧾 Spending']].map(([k,l])=>
+    `<button class="tab ${k===t?'on':''}" onclick="moneyTab('${k}')">${l}</button>`).join('');
+  if(t==='bills') billsDraw(); else if(t==='up') upDraw(); else spendDraw();
+}
+
+/* ---- CYCLE TRACKER ---- */
+let CY = null;
+async function cyLoad(){ CY = (await sget('mast:cycle')) || {starts:[]}; }
+function cyCalc(){
+  const s = [...CY.starts].sort();
+  let len = 28;
+  if(s.length >= 2){
+    const diffs = [];
+    for(let i = Math.max(1, s.length-6); i < s.length; i++)
+      diffs.push(Math.round((new Date(s[i]+'T12:00:00') - new Date(s[i-1]+'T12:00:00'))/86400000));
+    const avg = diffs.reduce((a,b)=>a+b,0)/diffs.length;
+    len = Math.min(45, Math.max(20, Math.round(avg)));
+  }
+  const last = s[s.length-1] || null;
+  let next = null, day = null, ovS = null, ovE = null;
+  if(last){
+    const d = new Date(last+'T12:00:00'); d.setDate(d.getDate()+len);
+    next = d.toISOString().slice(0,10);
+    day = Math.round((new Date(todayStr()+'T12:00:00') - new Date(last+'T12:00:00'))/86400000) + 1;
+    const ov = new Date(next+'T12:00:00'); ov.setDate(ov.getDate()-14);
+    const a = new Date(ov); a.setDate(a.getDate()-4);
+    const b = new Date(ov); b.setDate(b.getDate()+1);
+    ovS = a.toISOString().slice(0,10); ovE = b.toISOString().slice(0,10);
+  }
+  return {len, last, next, day, ovS, ovE};
+}
+async function cyLog(){
+  const d = document.getElementById('cyDate').value || todayStr();
+  if(CY.starts.includes(d)){ toast('Already logged'); return; }
+  CY.starts.push(d);
+  CY.starts = [...CY.starts].sort().slice(-18);
+  await sset('mast:cycle', CY);
+  toast('Logged 🌸');
+  cyDraw();
+}
+async function cyDel(d){
+  CY.starts = CY.starts.filter(x=>x!==d);
+  await sset('mast:cycle', CY);
+  cyDraw();
+}
+async function cyDraw(){
+  await cyLoad();
+  const c = cyCalc();
+  document.getElementById('healthBody').innerHTML = `
+    <div class="card"><b>🌸 Cycle & family planning</b>
+      ${c.last? `<div class="statline"><span>Cycle day today</span><b>Day ${c.day}</b></div>
+      <div class="statline"><span>Average cycle</span><b>${c.len} days</b></div>
+      <div class="statline"><span>Next period (est.)</span><b>${fmtD(c.next)} (${daysUntil(c.next)}d)</b></div>
+      <div class="statline" style="color:var(--teal);"><span>Fertile window (est.)</span><b>${fmtD(c.ovS)} – ${fmtD(c.ovE)}</b></div>` : '<div style="font-weight:700; opacity:.6; padding:6px 0;">Log the first day of a period to start predictions. Two or three cycles in, the estimates get personal.</div>'}
+      <div class="sendrow" style="margin-top:8px;"><input type="date" id="cyDate" class="dtin" value="${todayStr()}"><button class="btn pink" onclick="cyLog()">🌸 Log period start</button></div>
+      <div style="font-size:11px; font-weight:700; opacity:.6; margin-top:6px;">Estimates only — cycles vary, and this is planning help, not birth control. Trying for a baby? The fertile window is the target. Predictions also appear on the shared calendar as 🌸.</div>
+    </div>
+    ${CY.starts.length? `<div class="card"><b>History</b>${[...CY.starts].reverse().slice(0,8).map(d=>`<div class="statline"><span>${fmtD(d)}</span><button class="btn small" style="padding:2px 8px;" onclick="cyDel('${d}')">✕</button></div>`).join('')}</div>`:''}`;
+}
+function healthTab(t){
+  document.getElementById('healthTabs').innerHTML = [['w','⚖️ Weight'],['c','🔥 Calories'],['cy','🌸 Cycle']].map(([k,l])=>
+    `<button class="tab ${k===t?'on':''}" onclick="healthTab('${k}')">${l}</button>`).join('');
+  if(t==='w') hlWeightDraw(); else if(t==='c') hlCalDraw(); else cyDraw();
+}
+
+/* ---- CALENDAR MARKS v2 (adds family, trips, expenses, cycle) ---- */
+async function calBuildMarks(){
+  CALMARKS = {};
+  const push = (d, e) => { if(!d) return; (CALMARKS[d] = CALMARKS[d] || []).push(e); };
+  CAL.forEach(e=>push(e.date, e.type));
+  const [gf, pets, hc, md, fam, trips, up, cyc] = await Promise.all([
+    sget('mast:gifts'), sget('mast:pets'), sget('mast:homecare'), sget('mast:meds'),
+    sget('mast:family'), sget('mast:trips'), sget('mast:upcoming'), sget('mast:cycle')]);
+  const y = CALVIEW.y;
+  const bd = (bday, emoji) => {
+    if(!bday) return;
+    const md2 = bday.slice(5);
+    push(`${y}-${md2}`, emoji); push(`${y+1}-${md2}`, emoji);
+  };
+  ((gf&&gf.people)||[]).forEach(p=>bd(p.bday,'🎂'));
+  (pets||[]).forEach(p=>bd(p.bday,'🐾'));
+  (fam||[]).forEach(f=>{ if(!f.rip) bd(f.bday,'🎈'); });
+  (hc||[]).forEach(h=>{ if(h.last){ const d = new Date(h.last+'T12:00:00'); d.setMonth(d.getMonth()+h.months); push(d.toISOString().slice(0,10),'🏠'); }});
+  (md||[]).forEach(m=>{ if(m.refill) push(m.refill,'💊'); });
+  (trips||[]).forEach(t=>{ push(t.start,'✈️'); push(t.end,'🛬'); });
+  (up||[]).forEach(u=>{ if(!u.paid) push(u.due,'💵'); });
+  if(cyc && cyc.starts && cyc.starts.length){
+    const saved = CY; CY = cyc;
+    const c = cyCalc(); CY = saved;
+    if(c.next){
+      push(c.next,'🌸');
+      const d2 = new Date(c.next+'T12:00:00'); d2.setDate(d2.getDate()+c.len);
+      push(d2.toISOString().slice(0,10),'🌸');
+    }
+  }
+  push(`${y}-12-25`,'🎄'); push(`${y+1}-12-25`,'🎄');
+}
+
+/* ---- HEADS UP v2 ---- */
+async function dailyDraw(){
+  const el = document.getElementById('hqDaily');
+  if(!el) return;
+  const w = WOTD[dayIndex() % WOTD.length];
+  const f = FACTS[(dayIndex()+13) % FACTS.length];
+  const claimed = (await pget('mast:wotd')) === todayStr();
+  const ups = [];
+  const wx = await wxLine();
+  if(wx) ups.push(wx);
+  else if(localStorage.getItem('wx:on')!=='1') ups.push(`<button class="btn small" style="padding:3px 10px;" onclick="wxEnable()">⛅ Enable local weather</button>`);
+  try{
+    const [cal, gf, pets, hc, md, fam, trips, up] = await Promise.all([
+      sget('mast:cal'), sget('mast:gifts'), sget('mast:pets'), sget('mast:homecare'), sget('mast:meds'),
+      sget('mast:family'), sget('mast:trips'), sget('mast:upcoming')]);
+    const t = todayStr();
+    (cal||[]).filter(e=>e.date>t && daysUntil(e.date)<=3).slice(0,2).forEach(e=>ups.push(`${e.type} ${esc(e.title)} — ${fmtD(e.date)}${e.time? ' '+e.time:''}`));
+    (trips||[]).forEach(tr=>{ if(tr.start){ const dl = daysUntil(tr.start); if(dl>0 && dl<=5) ups.push(`🧳 ${esc(tr.n)} in ${dl}d — itinerary ready?`); if(dl===0) ups.push(`🧳 ${esc(tr.n)} starts TODAY — safe travels!`); }});
+    ((gf&&gf.people)||[]).forEach(p=>{ if(p.bday){ const b = nextBday(p.bday); if(b.days<=14) ups.push(`🎂 ${esc(p.name)}’s birthday ${b.days===0?'TODAY!':'in '+b.days+'d'} — gift sorted?`); }});
+    (fam||[]).forEach(fm=>{ if(!fm.rip && fm.bday){ const b = nextBday(fm.bday); if(b.days<=7) ups.push(`🎈 ${esc(fm.n)} (${esc(fm.rel||'family')}) — birthday ${b.days===0?'TODAY!':'in '+b.days+'d'}`); }});
+    (pets||[]).forEach(p=>{ if(p.bday){ const b = nextBday(p.bday); if(b.days<=7) ups.push(`🐾 ${esc(p.n)}’s birthday ${b.days===0?'TODAY — extra treats!':'in '+b.days+'d'}`); }});
+    (up||[]).forEach(u=>{ if(!u.paid){ const dl = daysUntil(u.due); if(dl<=7) ups.push(`💵 ${esc(u.n)} ($${u.a}) ${dl<0?'OVERDUE':dl===0?'due today':'due in '+dl+'d'}`); }});
+    (hc||[]).forEach(h=>{ if(h.last){ const d = new Date(h.last+'T12:00:00'); d.setMonth(d.getMonth()+h.months); const dl = daysUntil(d.toISOString().slice(0,10)); if(dl<=7) ups.push(`🏠 ${esc(h.name)} ${dl<=0?'is DUE':'due in '+dl+'d'}`); }});
+    (md||[]).forEach(m=>{ if(m.refill){ const dl = daysUntil(m.refill); if(dl<=5) ups.push(`💊 ${esc(m.name)} refill ${dl<0?'OVERDUE':dl===0?'due today':'in '+dl+'d'}`); }});
+    const xd = daysUntil(new Date().getFullYear()+'-12-25');
+    if(xd>0 && xd<=45) ups.push(`🎄 ${xd} days to Christmas — Xmas HQ says hi`);
+  }catch(e){}
+  ups.push(SEASON_TIPS[new Date().getMonth()]);
+  el.innerHTML = `<b>✨ Daily Drops</b>
+    <div style="margin-top:6px;">${ups.slice(0,7).map(u=>`<div style="font-size:13px; font-weight:800; padding:5px 8px; margin:4px 0; background:#FFF6EA; border:2px dashed var(--ink); border-radius:10px;">${u}</div>`).join('')}</div>
+    <div class="statline" style="align-items:flex-start;" onclick="nav('words')"><span style="font-size:13px;">📖 Word of the day ›</span>
+      <span style="text-align:right; max-width:65%;"><b>${w[0]}</b><br><span style="font-size:12px; font-weight:700; opacity:.75;">${w[1]}</span></span></div>
+    <button class="btn small ${claimed?'teal':'gold'} block" style="margin:8px 0;" onclick="wotdClaim()" ${claimed?'disabled':''}>${claimed?'✓ Used it today — nice':'I used it in a sentence today · +1 🙂'}</button>
+    <div class="statline" style="align-items:flex-start;"><span style="font-size:13px;">🤯 Tidbit</span><span style="text-align:right; max-width:70%; font-size:13px; font-weight:700;">${f}</span></div>`;
+}
+
+/* ---- FAMILY WING + US WING ADDITIONS ---- */
+WINGS.family = {title:'👨‍👩‍👧 Family', tiles:[
+ ['kids','#FFF3D6','🧒','The Kids','birth → graduation'],
+ ['fam','#E0F5F1','🌳','Family Tree','contacts · birthdays · memoriam'],
+ ['pets','#FFE3EC','🐾','The Pets','meds · vet · birthdays']
+]};
+WINGS.us.tiles.push(
+ ['counsel','#EAE6FB','🛋️','The Counselor','Freud → Gottman → repair'],
+ ['profile','#FFF0D4','🪞','Partner Profiles','languages · types · notes']
+);
 
 </script>
 </body>
